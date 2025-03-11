@@ -188,8 +188,8 @@ const TIMES = ["6:00 AM", "8:00 AM", "10:00 AM", "12:00 PM",
 
 // Define consistent decay rates for activities
 const DECAY_RATES = {
-    idle: { fullness: 1.2, joy: 0.7, stress: -0.3 },
-    work: { fullness: 4.5, joy: 2.0, stress: 0.8 },
+    idle: { fullness: 1.2, joy: -2.8, stress: -0.3 },
+    work: { fullness: 4.5, joy: -4.0, stress: 0.8 },
     physical: { fullness: 6.0, joy: 0.5, stress: 0.5 },
     sleep: { fullness: 12, joy: -4.0, stress: -6.0 }
 };
@@ -1108,12 +1108,12 @@ function triggerRandomEvent() {
         },
         {
             name: "Free Meal",
-            description: "A colleague buys lunch for everyone in the office today. It's a delicious spread!",
+            description: "A colleague buys lunch for everyone in the office today.",
             effects: { joy: 12, stress: -6, fullness: 30, money: 0 }
         },
         {
             name: "Unexpected Bonus",
-            description: "Your boss gives you a small bonus for your recent work. Every bit helps in this economy.",
+            description: "Your boss gives you a small bonus for your recent work. Every naira helps in this economy.",
             effects: { joy: 15, stress: -10, fullness: 0, money: 20000 }
         },
         {
@@ -1142,7 +1142,7 @@ function triggerRandomEvent() {
     const badEvents = [
         {
             name: "Price Increase",
-            description: "You notice that the price of your regular groceries has increased significantly. Your budget feels the squeeze.",
+            description: "You notice that the price of your regular groceries has increased.",
             effects: { joy: -8, stress: 15, fullness: 0, money: -8000 }
         },
         {
@@ -1157,23 +1157,23 @@ function triggerRandomEvent() {
         },
         {
             name: "Minor Illness",
-            description: "You come down with a mild fever and headache. Working through it is miserable.",
+            description: "You come down with a mild fever and headache. It makes you miserable.",
             effects: { joy: -15, stress: 12, fullness: -10, money: -5000 }
         },
         {
             name: "Lost Item",
-            description: "You realize you've lost your favorite pen that was a gift. It had sentimental value.",
+            description: "You realize you've lost your favorite pen. It was a gift.",
             effects: { joy: -10, stress: 8, fullness: 0, money: 0 }
         },
         {
             name: "Phone Problems",
             description: "Your phone is acting up and needs repairs soon.",
-            effects: { joy: -12, stress: 15, fullness: 0, money: -7500 }
+            effects: { joy: -12, stress: 15, fullness: 0, money: -35000 }
         },
         {
             name: "Burst Pipe",
-            description: "A pipe has burst in your apartment building, affecting your water supply.",
-            effects: { joy: -15, stress: 18, fullness: -5, money: -6000 }
+            description: "A pipe has burst in your building, affecting your water supply.",
+            effects: { joy: -15, stress: 18, fullness: -5, money: -10000 }
         },
         {
             name: "Bank Fees",
@@ -1233,7 +1233,7 @@ function startNewDay() {
         if (domElements.narrativeText) {
             domElements.narrativeText.innerHTML = `
                 <h2>You're Sick!</h2>
-                <p>The roadside food you ate earlier this week has made you ill. You can't go to work today.</p>
+                <p>The roadside food you ate earlier this week has made you ill. You're miserable.</p>
             `;
         }
         
@@ -1287,7 +1287,7 @@ function startTuesday() {
     if (domElements.narrativeText) {
         domElements.narrativeText.innerHTML = `
             <h2>Tuesday Morning</h2>
-            <p>You wake up to the sound of your alarm. It's Tuesday in Lagos.</p>
+            <p>You wake up to the sound of your alarm.</p>
             <p>You check your phone and see reports of further inflation. Prices have risen overnight.</p>
         `;
     }
@@ -1364,7 +1364,7 @@ function startFriday() {
         
         if (progressPercent < 85) {
             if (domElements.narrativeText) {
-                domElements.narrativeText.innerHTML += `<p>You're not going to make the deadline without extraordinary effort. Your stress spikes at the thought.</p>`;
+                domElements.narrativeText.innerHTML += `<p>You're not going to make the deadline without even more stress! You feel sick at the thought.</p>`;
             }
             
             updateStat('stress', 25);
@@ -1543,19 +1543,19 @@ function finishGame() {
     
     if (gameState.joy <= 10) {
         endingType = "Giving Up";
-        endingDescription = "The constant struggles of Lagos life have completely drained your joy. You've surrendered to despair, as the metaphorical ants have overtaken your existence.";
+        endingDescription = "The constant struggles of Lagos life have completely drained your joy. You've surrendered to despair, as the ants spread across your psyche.";
     } else if (gameState.stress >= 90) {
         endingType = "Breaking Point";
         endingDescription = "The pressure became too much. In a moment of clarity disguised as madness, you've decided to make a dramatic change in your life path.";
     } else if (gameState.joy < 30 || gameState.fullness < 30 || gameState.stress > 70) {
         endingType = "Survival";
-        endingDescription = "You've made it through the week, but at great cost to your wellbeing. Life in Lagos continues to be a daily struggle for survival.";
+        endingDescription = "You've made it through the week, but at great cost to your wellbeing.";
     } else if (gameState.joy >= 50 && gameState.fullness >= 50 && gameState.stress <= 50) {
         endingType = "Balance";
-        endingDescription = "Despite the challenges, you've managed to find a sustainable balance in your Lagos life. It's not easy, but you're making it work.";
+        endingDescription = "Despite the challenges, you've managed to find a sustainable balance. It's not easy, but you're making it work.";
     } else {
         endingType = "Triumph";
-        endingDescription = "Against all odds, you've not only survived but found ways to thrive in Lagos. Your resilience has paid off, and you face the future with renewed hope.";
+        endingDescription = "Against all odds, you've not only survived but found ways to thrive in Lagos. Your resilience has paid off, and you face the future with something resembling hope.";
     }
     
     // Check deadline completion
@@ -1625,8 +1625,8 @@ function showCharacterCreation() {
     
     domElements.narrativeText.innerHTML = `
         <h2>Welcome to Lagos</h2>
-        <p>Your task is simple: Nigerian life is a challenge! Can you survive it for one work week?</p>
-        <p>Each decision will affect your journey through a city that never stops testing your limits.</p>
+        <p>Can you survive one work week?p>
+        <p>Each decision will affect your journey and test your limits!</p>
     `;
     
     domElements.choicesContainer.innerHTML = `
@@ -1851,7 +1851,7 @@ function startGame() {
         domElements.narrativeText.innerHTML = `
             <h2>Monday Morning</h2>
             <p>You wake up in your home in ${gameState.location.name}. It's the start of another workweek in Lagos.</p>
-            <p>The constant hum of generators and distant sounds of traffic remind you that the city never truly sleeps.</p>
+            <p>Grumbling generators and ever present horns in traffic remind you that the city never truly sleeps.</p>
             <p>You check your phone: it's 6:00 AM. Time to start your day.</p>
         `;
     }
@@ -1891,12 +1891,11 @@ function checkPhone() {
     const newsEvents = [
         "The price of fuel has increased again. People are complaining on social media.",
         "There's a traffic alert for your route to work. Might be best to leave early.",
-        "A popular musician released a new song overnight. It's trending everywhere.",
-        "The power company announced more scheduled outages this week.",
+        "Rema released a new song overnight to rave reviews.",
+        "Your local DISCO announced more scheduled outages this week.",
         "The naira has fallen again against the dollar. Prices may rise soon.",
         "Your bank has sent a notification about new transaction fees.",
         "A friend posted photos from a party you missed last weekend.",
-        "There's a new meme going viral about Lagos traffic.",
         "Your electricity provider has increased tariffs starting today."
     ];
     
@@ -2049,13 +2048,13 @@ function takeBus() {
     updateStat('money', -busCost);
     
     // Check for random events
-    const oneChanceBus = Math.random() < 0.05;
+    const oneChanceBus = Math.random() < 0.1;
     if (oneChanceBus) {
-        gameOver("You unfortunately entered 'one-chance'. These vehicles, disguised as regular transport, are operated by criminals. Your journey ends here.");
+        gameOver("You unfortunately entered 'one-chance'. Your journey ends here.");
         return;
     }
     
-    const foundMoney = Math.random() < 0.2;
+    const foundMoney = Math.random() < 0.4;
     if (foundMoney) {
         const foundAmount = 9000;
         domElements.narrativeText.innerHTML += `<p>While waiting, you notice some money on the ground! It's ₦${foundAmount.toLocaleString()}!</p>`;
@@ -2094,9 +2093,9 @@ function mediateArgument() {
         domElements.narrativeText.innerHTML += `<p>You calmly help resolve the situation. Both parties appreciate your intervention.</p>`;
         updateStat('joy', 10);
     } else {
-        domElements.narrativeText.innerHTML += `<p>Your attempt to help only makes things worse. Now everyone is angry with you too.</p>`;
+        domElements.narrativeText.innerHTML += `<p>Your attempt to help only makes things worse. The conductor slaps you and asks what gives you the right to play mediator. You no be Jesus, so mind your business.</p>`;
         updateStat('stress', 15);
-        updateStat('joy', -5);
+        updateStat('joy', -10);
     }
     
     setTimeout(() => arriveAtWork(), 1500);
@@ -2113,9 +2112,9 @@ function pickUpMoney() {
     if (!domElements.narrativeText) return;
     
     const foundAmount = 9000;
-    const turnIntoYam = Math.random() < 0.3;
+    const turnIntoYam = Math.random() < 0.6;
     if (turnIntoYam) {
-        gameOver("As you pick up the money, you suddenly feel a strange sensation. Your adventure ends here as you realize some money is not meant to be picked up.");
+        gameOver("As you pick up the money, you suddenly feel a strange sensation. You are now a tuber of yam. Your adventure ends here as you realize some money is not meant to be picked up.");
         return;
     }
     
@@ -2353,7 +2352,7 @@ function goGetBreakfast() {
         // Give extra food if from roadside (good thing)
         const getExtraFood = Math.random() < 0.5;
         if (getExtraFood) {
-            domElements.narrativeText.innerHTML += `<p>The food vendor gives you an extra portion! "For my loyal customer," she says with a smile.</p>`;
+            domElements.narrativeText.innerHTML += `<p>The food vendor gives you extra! "For my loyal customer," she says with a smile.</p>`;
             updateStat('fullness', 10);
             updateStat('joy', 5);
         }
