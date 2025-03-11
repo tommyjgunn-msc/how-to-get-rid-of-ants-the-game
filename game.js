@@ -1625,7 +1625,7 @@ function showCharacterCreation() {
     
     domElements.narrativeText.innerHTML = `
         <h2>Welcome to Lagos</h2>
-        <p>Can you survive one work week?p>
+        <p>Can you survive one work week?</p>
         <p>Each decision will affect your journey and test your limits!</p>
     `;
     
