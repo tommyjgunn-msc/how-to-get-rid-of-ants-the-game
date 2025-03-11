@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="How to Get Rid of Ants: The Game - A survival simulation game set in Lagos, Nigeria">
+    <title>How to Get Rid of Ants: The Game</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="ant-background.jpg" as="image">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;500;700&display=swap" as="style">
+    
+    <!-- Fonts and stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Background elements -->
+        <div id="cityscape" class="cityscape morning" aria-hidden="true"></div>
+        <div id="geometric-elements" aria-hidden="true"></div>
+        
+        <!-- Game header -->
+        <header id="header">
+            <h1>How to Get Rid of Ants: The Game</h1>
+        </header>
+        
+        <!-- Game stats -->
+        <div id="stats-container">
+            <div class="stat">
+                <label for="joy-bar">Joy:</label>
+                <div class="progress-container">
+                    <div id="joy-bar" class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <span id="joy-value">100</span>
+            </div>
+            <div class="stat">
+                <label for="fullness-bar">Fullness:</label>
+                <div class="progress-container">
+                    <div id="fullness-bar" class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <span id="fullness-value">100</span>
+            </div>
+            <div class="stat">
+                <label for="stress-bar">Stress:</label>
+                <div class="progress-container">
+                    <div id="stress-bar" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <span id="stress-value">0</span>
+            </div>
+            <div class="stat">
+                <label>Money:</label>
+                <span id="money-value">₦0</span>
+            </div>
+            <div class="stat">
+                <label>Day:</label>
+                <span id="day-value">Monday</span>
+            </div>
+            <div class="stat">
+                <label>Time:</label>
+                <span id="time-value">6:00 AM</span>
+            </div>
+        </div>
+        
+        <!-- Deadline tracker -->
+        <div id="deadline-container" class="hidden">
+            <label for="deadline-bar">Deadline Progress:</label>
+            <div class="progress-container">
+                <div id="deadline-bar" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <span id="deadline-value">0%</span>
+        </div>
+        
+        <!-- Main game content -->
+        <main id="game-content">
+            <div id="narrative-text"></div>
+            <div id="choices-container"></div>
+        </main>
+        
+        <!-- Ant overlay system -->
+        <div id="ant-overlay" aria-hidden="true"></div>
+    </div>
+
+    <!-- Script loading -->
+    <script src="game.js" defer></script>
+</body>
+</html>
