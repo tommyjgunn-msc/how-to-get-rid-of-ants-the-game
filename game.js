@@ -1,67 +1,58 @@
 /**
  * How to Get Rid of Ants: The Game
  * A text-based survival simulation set in Lagos, Nigeria
+ * 
+ * Design Philosophy:
+ * - The "ants" represent intrusive thoughts, anxiety, and the weight of daily survival
+ * - Every mechanic should reinforce the theme of precarious balance
+ * - Lagos-specific authenticity in events, prices, and cultural details
+ * - Fair but challenging difficulty with meaningful choices
  */
 
 // ========================================================================
 // INITIALIZATION MANAGER
 // ========================================================================
 
-// Create a global initialization manager to control the startup process
 window.GameInitializer = {
-    // Initialization status flags
     initialized: false,
     elementsLoaded: false,
     gameStarted: false,
-    
-    // Error tracking
     hasError: false,
     errorMessage: "",
     
-    // Start the initialization process
     init: function() {
-        console.log("Starting game initialization...");
+        console.log("🐜 How to Get Rid of Ants: Starting initialization...");
         try {
-            // Wait for DOM to be fully loaded
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', this.onDOMLoaded.bind(this));
-                console.log("Waiting for DOM to load...");
             } else {
-                // DOM already loaded, proceed immediately
                 this.onDOMLoaded();
             }
         } catch (error) {
-            this.handleInitError(error, "Failed to set up initialization");
+            this.handleInitError(error, "Failed to initialize");
         }
     },
     
-    // Handle DOM loaded event
     onDOMLoaded: function() {
-        console.log("DOM loaded, initializing game...");
+        console.log("DOM loaded, setting up game systems...");
         try {
-            // Cache DOM elements
             window.domElements = {};
             this.cacheDOMElements();
             this.elementsLoaded = true;
             
-            // Initialize game state and systems
-            this.initializeGameState();
-            this.initializeGameSystems();
+            resetGameState();
+            this.initializeVisuals();
+            initAntSystem();
             
-            // Start the game UI
             this.startGame();
-            
-            // Mark initialization as complete
             this.initialized = true;
-            console.log("Game initialization completed successfully");
+            console.log("🐜 Game initialization complete");
         } catch (error) {
-            this.handleInitError(error, "Error during game initialization");
+            this.handleInitError(error, "Error during initialization");
         }
     },
     
-    // Cache all DOM elements
     cacheDOMElements: function() {
-        // Stat bars and values
         domElements.joyBar = document.getElementById('joy-bar');
         domElements.fullnessBar = document.getElementById('fullness-bar');
         domElements.stressBar = document.getElementById('stress-bar');
@@ -71,96 +62,50 @@ window.GameInitializer = {
         domElements.moneyValue = document.getElementById('money-value');
         domElements.dayValue = document.getElementById('day-value');
         domElements.timeValue = document.getElementById('time-value');
-        
-        // Game content sections
         domElements.narrativeText = document.getElementById('narrative-text');
         domElements.choicesContainer = document.getElementById('choices-container');
         domElements.antOverlay = document.getElementById('ant-overlay');
         domElements.gameContent = document.getElementById('game-content');
         domElements.cityscape = document.getElementById('cityscape');
-        
-        // Deadline elements
         domElements.deadlineContainer = document.getElementById('deadline-container');
         domElements.deadlineBar = document.getElementById('deadline-bar');
         domElements.deadlineValue = document.getElementById('deadline-value');
         
-        // Verify essential elements exist
-        const essentialElements = ['narrativeText', 'choicesContainer', 'gameContent'];
-        const missingElements = essentialElements.filter(el => !domElements[el]);
-        
-        if (missingElements.length > 0) {
-            throw new Error(`Missing essential DOM elements: ${missingElements.join(', ')}`);
+        const essential = ['narrativeText', 'choicesContainer', 'gameContent'];
+        const missing = essential.filter(el => !domElements[el]);
+        if (missing.length > 0) {
+            throw new Error(`Missing elements: ${missing.join(', ')}`);
         }
-        
-        console.log("DOM elements cached successfully");
     },
     
-    // Initialize game state
-    initializeGameState: function() {
-        // Reset the game state to initial values
-        resetGameState();
-        console.log("Game state initialized");
-    },
-    
-    // Initialize game systems
-    initializeGameSystems: function() {
-        // Initialize visual elements
-        this.initializeVisuals();
-        
-        // Initialize ant system
-        initAntSystem();
-        
-        console.log("Game systems initialized");
-    },
-    
-    // Initialize visual elements
     initializeVisuals: function() {
-        // Add floating elements
         addFloatingElements();
-        
-        // Initialize cityscape
         updateCityscape();
-        
-        console.log("Visual elements initialized");
     },
     
-    // Start the game UI
     startGame: function() {
-        try {
-            // Start the game by showing character creation
-            showCharacterCreation();
-            
-            // Set flag that game has started
-            this.gameStarted = true;
-            console.log("Game UI started successfully");
-        } catch (error) {
-            this.handleInitError(error, "Failed to start game UI");
-        }
+        showCharacterCreation();
+        this.gameStarted = true;
     },
     
-    // Handle initialization errors
     handleInitError: function(error, context) {
         this.hasError = true;
         this.errorMessage = `${context}: ${error.message}`;
         console.error(this.errorMessage, error);
-        
-        // Display error to user if possible
         this.displayErrorMessage();
     },
     
-    // Show error message in the game UI
     displayErrorMessage: function() {
-        // Try to display error in game content
         try {
             const narrativeEl = document.getElementById('narrative-text');
             const choicesEl = document.getElementById('choices-container');
             
             if (narrativeEl) {
                 narrativeEl.innerHTML = `
-                    <h2>Game Error</h2>
-                    <p>There was a problem starting the game:</p>
-                    <p class="error-message">${this.errorMessage}</p>
-                    <p>Please try refreshing the page.</p>
+                    <h2>Something went wrong</h2>
+                    <p>The game encountered an error:</p>
+                    <p style="color: var(--danger-red); font-family: var(--font-mono);">${this.errorMessage}</p>
+                    <p>Please refresh the page to try again.</p>
                 `;
             }
             
@@ -170,8 +115,7 @@ window.GameInitializer = {
                 `;
             }
         } catch (e) {
-            // If we can't even show the error in the UI, log to console as last resort
-            console.error("Could not display error message in UI", e);
+            console.error("Could not display error:", e);
         }
     }
 };
@@ -180,80 +124,121 @@ window.GameInitializer = {
 // CONSTANTS AND CONFIGURATION
 // ========================================================================
 
-// Days and times for display
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const TIMES = ["6:00 AM", "8:00 AM", "10:00 AM", "12:00 PM", 
               "2:00 PM", "4:00 PM", "6:00 PM", "8:00 PM", 
               "10:00 PM", "12:00 AM"];
 
-// Define consistent decay rates for activities
+// REBALANCED: More nuanced decay rates
 const DECAY_RATES = {
-    idle: { fullness: 1.2, joy: -2.8, stress: -0.3 },
-    work: { fullness: 4.5, joy: -4.0, stress: 0.8 },
-    physical: { fullness: 6.0, joy: 0.5, stress: 0.5 },
-    sleep: { fullness: 12, joy: -4.0, stress: -6.0 }
+    idle: { fullness: 1.5, joy: -2.0, stress: -0.2 },
+    work: { fullness: 3.5, joy: -2.5, stress: 0.5 },
+    physical: { fullness: 5.0, joy: 0.8, stress: 0.3 },
+    sleep: { fullness: 10, joy: -2.5, stress: -5.0 }
 };
 
-// Define class-based modifiers
+// REBALANCED: More nuanced class differences
 const CLASS_MODIFIERS = {
     'working': {
-        eventChance: 1.3,      // 30% more random events
-        goodEventChance: 0.4,  // 40% chance of good event
-        incomeMultiplier: 0.7, // Lower income
-        costMultiplier: 0.9,   // Slightly lower costs (more resourceful)
-        communitySupport: 0.35, // 35% chance of community help in crisis
-        stressFromWork: 1.3,   // More stress from work
-        joyFromLeisure: 1.4    // More joy from leisure
+        eventChance: 1.2,
+        goodEventChance: 0.35,
+        incomeMultiplier: 0.75,
+        costMultiplier: 0.85,      // Lower costs (budgeting skills)
+        communitySupport: 0.40,    // Strong community bonds
+        stressFromWork: 1.2,
+        joyFromLeisure: 1.3,       // Simple pleasures mean more
+        startingMoney: 0.65
     },
     'middle': {
-        eventChance: 1.0,      // Standard event rate
-        goodEventChance: 0.5,  // Standard good/bad ratio
-        incomeMultiplier: 1.0, // Standard income
-        costMultiplier: 1.0,   // Standard costs
-        communitySupport: 0.15, // 15% chance of community help
-        stressFromWork: 1.0,   // Standard stress from work
-        joyFromLeisure: 1.0    // Standard joy from leisure
+        eventChance: 1.0,
+        goodEventChance: 0.45,
+        incomeMultiplier: 1.0,
+        costMultiplier: 1.0,
+        communitySupport: 0.20,
+        stressFromWork: 1.0,
+        joyFromLeisure: 1.0,
+        startingMoney: 1.0
     },
     'upper': {
-        eventChance: 0.75,     // 25% fewer random events
-        goodEventChance: 0.6,  // More likely to be good
-        incomeMultiplier: 1.2, // Higher income (reduced from 1.3)
-        costMultiplier: 1.4,   // Higher costs (luxury living) - increased
-        communitySupport: 0.05, // 5% chance of community support
-        stressFromWork: 0.9,   // Less stress from work
-        joyFromLeisure: 0.7    // Less joy from leisure (diminishing returns)
+        eventChance: 0.85,
+        goodEventChance: 0.55,
+        incomeMultiplier: 1.15,    // Reduced from 1.2
+        costMultiplier: 1.5,       // Higher expectations = higher costs
+        communitySupport: 0.08,
+        stressFromWork: 0.85,
+        joyFromLeisure: 0.75,      // Diminishing returns
+        startingMoney: 1.6
     }
 };
 
-// Food options with effects and availability
+// ENHANCED: More varied food options with Lagos authenticity
 const FOOD_OPTIONS = [
-    { name: "Suya", cost: 4500, fullnessBoost: 18, joyBoost: 10, location: "roadside", availability: 1.0 },
-    { name: "Small chops", cost: 6000, fullnessBoost: 16, joyBoost: 12, location: "all", availability: 0.9 },
-    { name: "Rice and chicken stew", cost: 7500, fullnessBoost: 35, joyBoost: 10, location: "all", availability: 1.0 },
-    { name: "Jollof rice", cost: 7500, fullnessBoost: 35, joyBoost: 12, location: "all", availability: 1.0 },
-    { name: "Peppered Beef", cost: 5500, fullnessBoost: 12, joyBoost: 8, location: "all", availability: 0.95, isside: true },
-    { name: "Peppered turkey", cost: 6500, fullnessBoost: 12, joyBoost: 10, location: "all", availability: 0.95, isside: true },
-    { name: "Ofada rice and ayamase", cost: 8500, fullnessBoost: 40, joyBoost: 14, location: "all", availability: 0.9 },
-    { name: "Creamy pasta", cost: 10000, fullnessBoost: 30, joyBoost: 16, location: "restaurant", availability: 1.0 }
+    // Street Food
+    { name: "Suya", cost: 4000, fullnessBoost: 20, joyBoost: 12, location: "roadside", sickChance: 0.15 },
+    { name: "Akara and pap", cost: 2500, fullnessBoost: 25, joyBoost: 8, location: "roadside", sickChance: 0.10 },
+    { name: "Boli and groundnut", cost: 2000, fullnessBoost: 22, joyBoost: 10, location: "roadside", sickChance: 0.08 },
+    
+    // Regular meals
+    { name: "Jollof rice", cost: 5500, fullnessBoost: 38, joyBoost: 14, location: "all", sickChance: 0.05 },
+    { name: "Rice and stew with chicken", cost: 6500, fullnessBoost: 40, joyBoost: 12, location: "all", sickChance: 0.04 },
+    { name: "Eba and egusi soup", cost: 5000, fullnessBoost: 45, joyBoost: 10, location: "all", sickChance: 0.05 },
+    { name: "Amala and ewedu", cost: 4500, fullnessBoost: 42, joyBoost: 11, location: "all", sickChance: 0.05 },
+    { name: "Ofada rice and ayamase", cost: 7000, fullnessBoost: 42, joyBoost: 15, location: "all", sickChance: 0.03 },
+    
+    // Restaurant/Premium
+    { name: "Pepper soup and swallow", cost: 8000, fullnessBoost: 38, joyBoost: 16, location: "restaurant", sickChance: 0.02 },
+    { name: "Grilled fish platter", cost: 12000, fullnessBoost: 35, joyBoost: 18, location: "restaurant", sickChance: 0.01 },
+    { name: "Chinese takeaway", cost: 10000, fullnessBoost: 32, joyBoost: 14, location: "restaurant", sickChance: 0.02 },
+    
+    // Snacks/Sides
+    { name: "Chin chin and zobo", cost: 1500, fullnessBoost: 12, joyBoost: 8, location: "all", sickChance: 0.02, isSnack: true },
+    { name: "Puff puff", cost: 1000, fullnessBoost: 10, joyBoost: 9, location: "roadside", sickChance: 0.05, isSnack: true }
 ];
+
+// ENHANCED: Ant-related flavor text (ludonarrative integration)
+const ANT_THOUGHTS = {
+    low_joy: [
+        "The ants whisper that nothing will ever change.",
+        "You feel them crawling at the edges of your thoughts.",
+        "Each small failure feeds the colony in your mind.",
+        "The ants are louder today. They know you're struggling."
+    ],
+    high_stress: [
+        "The ants march in formation through your anxieties.",
+        "You can almost hear them, countless legs on your nerves.",
+        "The colony grows with every worry you feed it.",
+        "They're building something in the dark corners of your mind."
+    ],
+    recovering: [
+        "The ants retreat, just a little. There's hope.",
+        "You push back against the crawling thoughts.",
+        "The colony is quieter. You're winning, slowly.",
+        "Breathe. The ants don't own this space."
+    ],
+    thriving: [
+        "The ants are silent today. You've found your balance.",
+        "Clear thoughts, clear mind. The colony has nothing to feed on.",
+        "You remember why you keep fighting.",
+        "Lagos is hard, but you're harder."
+    ]
+};
 
 // ========================================================================
 // GAME STATE
 // ========================================================================
 
-// Initialize the global game state object
 const gameState = {
-    // Player stats
+    // Core stats
     joy: 100,
     fullness: 100,
     stress: 0,
     money: 0,
     
-    // Time tracking
-    day: 0, // 0 = Monday, 4 = Friday
-    time: 0, // 0 = 6AM, increments by 2 hours, 9 = 12AM
+    // Time
+    day: 0,
+    time: 0,
     
-    // Player attributes
+    // Character
     job: null,
     class: null,
     age: null,
@@ -261,32 +246,32 @@ const gameState = {
     playerName: "",
     companyName: "",
     
-    // Game flags
+    // Flags
     hasTransportation: false,
     hasFamilyEmergency: false,
     isWorking: false,
     isSick: false,
-    roadSideFood: false,
+    sicknessType: null, // 'food' or 'stress'
     rainedYesterday: false,
     hadRandomEventToday: false,
-    sicknessScheduled: false,
-    sicknessDay: -1,
-    drugComedownDay: null,
     
-    // Work tracking
+    // Work
     workProgress: 0,
-    workdayStage: 0, // 0 = not started, 1 = morning, 2 = midday, 3 = afternoon
+    workdayStage: 0,
     currentWorkTimeAdvance: 0,
+    deadline: 0,
+    deadlineProgress: 0,
     
-    // Other tracking variables
+    // Tracking
     events: [],
     endingType: null,
     activeAnts: 0,
     antPool: [],
     antUpdateTimer: null,
     lastMealTime: -1,
+    mealsToday: 0,
     
-    // Evening activity tracking
+    // Activity tracking (for diminishing returns)
     eveningActivities: {
         tv: 0,
         social: 0,
@@ -295,315 +280,274 @@ const gameState = {
         creative: 0
     },
     
-    // Tuesday's impossible deadline
-    deadline: 0,
-    deadlineProgress: 0,
-    
-    // Streak tracking
+    // Streaks
     streaks: {
         daysWithoutFood: 0,
         daysWithHighStress: 0,
-        daysWithLowJoy: 0
+        daysWithLowJoy: 0,
+        consecutiveWorkDays: 0
     },
+    
+    // Anti-death spiral mechanic
+    resiliencePoints: 2, // Safety net for new players
     
     // Game state
     isGameOver: false
 };
 
-// Function to reset game state to initial values
 function resetGameState() {
-    // Reset player stats
-    gameState.joy = 100;
-    gameState.fullness = 100;
-    gameState.stress = 0;
-    gameState.money = 0;
-    
-    // Reset time tracking
-    gameState.day = 0;
-    gameState.time = 0;
-    
-    // Reset player attributes
-    gameState.job = null;
-    gameState.class = null;
-    gameState.age = null;
-    gameState.location = null;
-    gameState.playerName = "";
-    gameState.companyName = "";
-    
-    // Reset game flags
-    gameState.hasTransportation = false;
-    gameState.hasFamilyEmergency = false;
-    gameState.isWorking = false;
-    gameState.isSick = false;
-    gameState.roadSideFood = false;
-    gameState.rainedYesterday = false;
-    gameState.hadRandomEventToday = false;
-    gameState.sicknessScheduled = false;
-    gameState.sicknessDay = -1;
-    gameState.drugComedownDay = null;
-    
-    // Reset work tracking
-    gameState.workProgress = 0;
-    gameState.workdayStage = 0;
-    gameState.currentWorkTimeAdvance = 0;
-    
-    // Reset other tracking variables
-    gameState.events = [];
-    gameState.endingType = null;
-    gameState.activeAnts = 0;
-    gameState.antPool = [];
-    gameState.antUpdateTimer = null;
-    gameState.lastMealTime = -1;
-    
-    // Reset evening activity tracking
-    gameState.eveningActivities = {
-        tv: 0,
-        social: 0,
-        work: 0,
-        exercise: 0,
-        creative: 0
-    };
-    
-    // Reset deadline
-    gameState.deadline = 0;
-    gameState.deadlineProgress = 0;
-    
-    // Reset streak tracking
-    gameState.streaks = {
-        daysWithoutFood: 0,
-        daysWithHighStress: 0,
-        daysWithLowJoy: 0
-    };
-    
-    // Reset game state
-    gameState.isGameOver = false;
+    Object.assign(gameState, {
+        joy: 100,
+        fullness: 100,
+        stress: 0,
+        money: 0,
+        day: 0,
+        time: 0,
+        job: null,
+        class: null,
+        age: null,
+        location: null,
+        playerName: "",
+        companyName: "",
+        hasTransportation: false,
+        hasFamilyEmergency: false,
+        isWorking: false,
+        isSick: false,
+        sicknessType: null,
+        rainedYesterday: false,
+        hadRandomEventToday: false,
+        workProgress: 0,
+        workdayStage: 0,
+        currentWorkTimeAdvance: 0,
+        deadline: 0,
+        deadlineProgress: 0,
+        events: [],
+        endingType: null,
+        activeAnts: 0,
+        antPool: [],
+        antUpdateTimer: null,
+        lastMealTime: -1,
+        mealsToday: 0,
+        eveningActivities: { tv: 0, social: 0, work: 0, exercise: 0, creative: 0 },
+        streaks: { daysWithoutFood: 0, daysWithHighStress: 0, daysWithLowJoy: 0, consecutiveWorkDays: 0 },
+        resiliencePoints: 2,
+        isGameOver: false
+    });
 }
 
-// Global DOM elements container
 let domElements = {};
 
 // ========================================================================
-// CORE UTILITY FUNCTIONS
+// UTILITY FUNCTIONS
 // ========================================================================
 
-// Add visual notification for stat changes
-function showStatChange(statName, amount) {
-    if (amount === 0 || gameState.isGameOver) return;
-    
-    // Create a floating notification element
-    const notif = document.createElement('div');
-    notif.classList.add('stat-change');
-    
-    // Determine emoji and color based on stat and direction
-    let emoji, color;
-    if (statName === 'joy') {
-        emoji = amount > 0 ? '😊' : '😔';
-        color = amount > 0 ? '#4CAF50' : '#F44336';
-    } else if (statName === 'fullness') {
-        emoji = amount > 0 ? '🍔' : '🍽️';
-        color = amount > 0 ? '#FFC107' : '#F44336';
-    } else if (statName === 'stress') {
-        emoji = amount > 0 ? '😰' : '😌';
-        color = amount > 0 ? '#F44336' : '#4CAF50';
-    } else if (statName === 'money') {
-        emoji = amount > 0 ? '💰' : '💸';
-        color = amount > 0 ? '#4CAF50' : '#F44336';
-    }
-    
-    // Create notification content
-    notif.innerHTML = `${emoji} ${statName}: ${amount > 0 ? '+' : ''}${Math.round(amount)}`;
-    notif.style.color = color;
-    
-    // Add to DOM
-    const statsContainer = document.getElementById('stats-container');
-    if (statsContainer) {
-        statsContainer.appendChild(notif);
-        
-        // Animate and remove
-        setTimeout(() => {
-            notif.classList.add('fadeout');
-            setTimeout(() => notif.remove(), 1000);
-        }, 1500);
+// Get ant-related flavor text based on current state
+function getAntThought() {
+    if (gameState.joy >= 70 && gameState.stress <= 30) {
+        return ANT_THOUGHTS.thriving[Math.floor(Math.random() * ANT_THOUGHTS.thriving.length)];
+    } else if (gameState.joy >= 50 || gameState.stress <= 50) {
+        return ANT_THOUGHTS.recovering[Math.floor(Math.random() * ANT_THOUGHTS.recovering.length)];
+    } else if (gameState.stress > 70) {
+        return ANT_THOUGHTS.high_stress[Math.floor(Math.random() * ANT_THOUGHTS.high_stress.length)];
+    } else {
+        return ANT_THOUGHTS.low_joy[Math.floor(Math.random() * ANT_THOUGHTS.low_joy.length)];
     }
 }
 
-// Update a stat with visual feedback
+// Show stat change notification
+function showStatChange(statName, amount) {
+    if (Math.abs(amount) < 0.5 || gameState.isGameOver) return;
+    
+    const notif = document.createElement('div');
+    notif.classList.add('stat-change');
+    
+    let emoji, color;
+    const isPositive = statName === 'stress' ? amount < 0 : amount > 0;
+    
+    switch(statName) {
+        case 'joy':
+            emoji = isPositive ? '😊' : '😔';
+            break;
+        case 'fullness':
+            emoji = isPositive ? '🍚' : '😋';
+            break;
+        case 'stress':
+            emoji = isPositive ? '😌' : '😰';
+            break;
+        case 'money':
+            emoji = isPositive ? '💰' : '💸';
+            break;
+        default:
+            emoji = '';
+    }
+    
+    color = isPositive ? 'var(--success-green)' : 'var(--danger-red)';
+    
+    const displayAmount = statName === 'money' 
+        ? `₦${Math.abs(Math.round(amount)).toLocaleString()}`
+        : Math.abs(Math.round(amount));
+    
+    notif.innerHTML = `${emoji} ${amount > 0 ? '+' : '-'}${displayAmount}`;
+    notif.style.color = color;
+    
+    document.body.appendChild(notif);
+    
+    setTimeout(() => {
+        notif.remove();
+    }, 2000);
+}
+
+// Update stat with bounds checking
 function updateStat(statName, amount) {
-    // Skip if amount is 0 or game is over
     if (amount === 0 || gameState.isGameOver) return gameState[statName];
     
-    // Get current value
-    let currentValue = gameState[statName];
+    const oldValue = gameState[statName];
+    let newValue = oldValue + amount;
     
-    // Apply change
-    let newValue = currentValue + amount;
-    
-    // Apply appropriate limits based on stat type
+    // Apply bounds
     if (statName === 'joy' || statName === 'fullness') {
         newValue = Math.max(0, Math.min(100, newValue));
     } else if (statName === 'stress') {
         newValue = Math.max(0, Math.min(100, newValue));
+    } else if (statName === 'money') {
+        newValue = Math.max(-50000, newValue); // Allow small debt
     }
     
-    // Update the stat
     gameState[statName] = newValue;
     
-    // Add visual feedback only for significant changes
-    if (Math.abs(amount) >= 0.5) {
-        showStatChange(statName, amount);
+    // Visual feedback for significant changes
+    if (Math.abs(newValue - oldValue) >= 0.5) {
+        showStatChange(statName, newValue - oldValue);
     }
     
     return newValue;
 }
 
-// Modify cost based on player's social class
+// Cost modifier based on class
 function modifyCost(baseCost) {
     if (!gameState.class) return baseCost;
-    
-    const mod = CLASS_MODIFIERS[gameState.class];
-    return Math.round(baseCost * mod.costMultiplier);
+    return Math.round(baseCost * CLASS_MODIFIERS[gameState.class].costMultiplier);
 }
 
-// Process income based on player's social class
+// Process income
 function receivePay(amount) {
     if (!gameState.class) return amount;
-    
-    const mod = CLASS_MODIFIERS[gameState.class];
-    const adjustedAmount = Math.round(amount * mod.incomeMultiplier);
-    
-    updateStat('money', adjustedAmount);
-    return adjustedAmount;
+    const adjusted = Math.round(amount * CLASS_MODIFIERS[gameState.class].incomeMultiplier);
+    updateStat('money', adjusted);
+    return adjusted;
 }
 
-// Generate a company name based on job
+// Generate company name
 function generateCompanyName(job) {
-    const companyPrefixes = ["Lagos", "Naija", "West African", "Golden", "Royal", "Unity", "Diamond", "Sunrise", "Elite", "Heritage"];
-    const companySuffixes = {
-        'marketer': ["Marketing Solutions", "Advertising Agency", "Brand Consultants", "Media Group", "Promotions Ltd"],
-        'programmer': ["Tech Solutions", "Software Innovations", "Digital Systems", "CodeWorks", "Tech Hub"],
-        'designer': ["Design Studio", "Creative Agency", "Visual Arts", "Graphics Plus", "Design Works"],
-        'artist': ["Art Gallery", "Creative Collective", "Studio", "Art House", "Cultural Center"]
+    const prefixes = ["Lagos", "Naija", "West African", "Golden", "Royal", "Unity", "Diamond", "Sunrise", "Elite", "Heritage", "Pacific", "Mainland", "Island"];
+    const suffixes = {
+        'marketer': ["Marketing Solutions", "Advertising Agency", "Brand Consultants", "Media Group", "Promotions Ltd", "Digital Marketing"],
+        'programmer': ["Tech Solutions", "Software Innovations", "Digital Systems", "CodeWorks", "Tech Hub", "IT Solutions", "DevOps Ltd"],
+        'designer': ["Design Studio", "Creative Agency", "Visual Arts", "Graphics Plus", "Design Works", "Creative Lab"],
+        'artist': ["Art Gallery", "Creative Collective", "Studio", "Art House", "Cultural Center", "Visual Arts"]
     };
     
-    const prefix = companyPrefixes[Math.floor(Math.random() * companyPrefixes.length)];
-    const suffix = companySuffixes[job][Math.floor(Math.random() * companySuffixes[job].length)];
-    
+    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const suffix = suffixes[job][Math.floor(Math.random() * suffixes[job].length)];
     return `${prefix} ${suffix}`;
 }
 
 // ========================================================================
-// UI HANDLING & RENDERING
+// UI RENDERING
 // ========================================================================
 
-// Update the UI to reflect current game state
 function updateUI() {
-    // Skip if game is over or elements aren't available yet
     if (gameState.isGameOver || !domElements.joyBar) return;
     
     try {
-        // Update progress bars
-        if (domElements.joyBar) domElements.joyBar.style.width = `${gameState.joy}%`;
-        if (domElements.fullnessBar) domElements.fullnessBar.style.width = `${gameState.fullness}%`;
-        if (domElements.stressBar) domElements.stressBar.style.width = `${gameState.stress}%`;
+        // Update progress bars with critical state indicators
+        if (domElements.joyBar) {
+            domElements.joyBar.style.width = `${gameState.joy}%`;
+            domElements.joyBar.classList.toggle('critical', gameState.joy <= 20);
+        }
+        if (domElements.fullnessBar) {
+            domElements.fullnessBar.style.width = `${gameState.fullness}%`;
+            domElements.fullnessBar.classList.toggle('critical', gameState.fullness <= 20);
+        }
+        if (domElements.stressBar) {
+            domElements.stressBar.style.width = `${gameState.stress}%`;
+            domElements.stressBar.classList.toggle('critical', gameState.stress >= 80);
+        }
         
-        // Update numerical values
+        // Update values
         if (domElements.joyValue) domElements.joyValue.textContent = Math.round(gameState.joy);
         if (domElements.fullnessValue) domElements.fullnessValue.textContent = Math.round(gameState.fullness);
         if (domElements.stressValue) domElements.stressValue.textContent = Math.round(gameState.stress);
         if (domElements.moneyValue) domElements.moneyValue.textContent = `₦${gameState.money.toLocaleString()}`;
-        
-        // Update day and time
         if (domElements.dayValue) domElements.dayValue.textContent = DAYS[gameState.day];
         if (domElements.timeValue) domElements.timeValue.textContent = TIMES[gameState.time];
         
-        // Update background elements
         updateCityscape();
-        
-        // Update deadline progress if applicable
         updateDeadlineUI();
-        
-        // Update ant overlay based on joy level and stress
         updateAntVisualization();
-        
-        // Process stat interactions and check for game over
         processStatInteractions();
     } catch (error) {
-        console.error("Error updating UI:", error);
+        console.error("UI update error:", error);
     }
 }
 
-// Update cityscape based on time of day
 function updateCityscape() {
     if (!domElements.cityscape) return;
     
     const time = gameState.time;
-    
-    // Update cityscape class based on time of day
-    if (time < 3) { // Morning
+    if (time < 3) {
         domElements.cityscape.className = 'cityscape morning';
-    } else if (time < 6) { // Afternoon
+    } else if (time < 6) {
         domElements.cityscape.className = 'cityscape afternoon';
-    } else { // Evening
+    } else {
         domElements.cityscape.className = 'cityscape evening';
     }
 }
 
-// Update deadline UI if active
 function updateDeadlineUI() {
-    if (!domElements.deadlineContainer || !domElements.deadlineBar || !domElements.deadlineValue) return;
+    if (!domElements.deadlineContainer) return;
     
     if (gameState.deadline > 0) {
-        // Show deadline container and update progress
         domElements.deadlineContainer.classList.remove('hidden');
         const progress = Math.min(100, Math.round((gameState.deadlineProgress / gameState.deadline) * 100));
-        domElements.deadlineBar.style.width = `${progress}%`;
-        domElements.deadlineValue.textContent = `${progress}%`;
         
-        // ARIA update
-        domElements.deadlineBar.setAttribute('aria-valuenow', progress);
+        if (domElements.deadlineBar) {
+            domElements.deadlineBar.style.width = `${progress}%`;
+            domElements.deadlineBar.setAttribute('aria-valuenow', progress);
+            
+            // Color coding
+            if (gameState.day >= 4 && progress < 85) {
+                domElements.deadlineBar.style.background = 'linear-gradient(90deg, var(--danger-red), var(--warning-orange))';
+            } else if (gameState.day >= 3 && progress < 60) {
+                domElements.deadlineBar.style.background = 'linear-gradient(90deg, var(--warning-orange), var(--accent-amber))';
+            } else {
+                domElements.deadlineBar.style.background = 'linear-gradient(90deg, var(--primary-emerald), var(--success-green))';
+            }
+        }
         
-        // Color coding based on progress and day
-        if (gameState.day >= 4) { // Friday
-            if (progress < 85) {
-                domElements.deadlineBar.style.backgroundColor = '#F44336'; // Red - danger
-            } else {
-                domElements.deadlineBar.style.backgroundColor = '#FFC107'; // Yellow - caution
-            }
-        } else if (gameState.day >= 3) { // Thursday
-            if (progress < 50) {
-                domElements.deadlineBar.style.backgroundColor = '#F44336'; // Red - danger
-            } else if (progress < 75) {
-                domElements.deadlineBar.style.backgroundColor = '#FFC107'; // Yellow - caution
-            } else {
-                domElements.deadlineBar.style.backgroundColor = '#4CAF50'; // Green - good
-            }
-        } else {
-            domElements.deadlineBar.style.backgroundColor = '#2196F3'; // Blue - normal
+        if (domElements.deadlineValue) {
+            domElements.deadlineValue.textContent = `${progress}%`;
         }
     } else {
-        // Hide the deadline container if no active deadline
         domElements.deadlineContainer.classList.add('hidden');
     }
 }
 
-// Add floating geometric elements
 function addFloatingElements() {
     const shapes = ['pyramid', 'cube', 'sphere', 'star'];
     const container = document.getElementById('geometric-elements');
     
     if (!container) return;
-    
-    // Remove any existing floating shapes first
     container.innerHTML = '';
     
-    // Add new shapes
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
         const shape = document.createElement('div');
         const shapeType = shapes[Math.floor(Math.random() * shapes.length)];
         shape.className = `floating-shape ${shapeType}`;
         shape.style.left = `${Math.random() * 90}%`;
         shape.style.top = `${Math.random() * 90}%`;
         shape.style.animationDelay = `${Math.random() * 5}s`;
+        shape.style.animationDuration = `${15 + Math.random() * 10}s`;
         container.appendChild(shape);
     }
 }
@@ -612,70 +556,52 @@ function addFloatingElements() {
 // ANT VISUALIZATION SYSTEM
 // ========================================================================
 
-// Initialize ant system
 function initAntSystem() {
-    // First, clear any previous ant system
     clearAntSystem();
     
-    // Make sure ant overlay exists before proceeding
-    if (!domElements.antOverlay) {
-        console.warn("Ant overlay container not found");
-        return;
-    }
+    if (!domElements.antOverlay) return;
     
-    // Initialize ant pool
     gameState.antPool = [];
-    const MAX_INTERACTIVE_ANTS = 20; 
+    const MAX_ANTS = 25;
     
-    for (let i = 0; i < MAX_INTERACTIVE_ANTS; i++) {
+    for (let i = 0; i < MAX_ANTS; i++) {
         const ant = document.createElement('div');
         ant.className = 'interactive-ant';
-        ant.style.display = 'none'; // Hide initially
-        ant.style.top = '0%';
-        ant.style.left = '0%';
+        ant.style.display = 'none';
         
-        // Make ants clickable
         ant.addEventListener('click', function(e) {
             if (gameState.isGameOver) return;
             
             e.stopPropagation();
             this.classList.add('squished');
             
-            // Joy boost from squishing ants
-            updateStat('joy', 0.8);
+            // Small joy boost from squishing ants (reclaiming mental space)
+            updateStat('joy', 0.5);
+            updateStat('stress', -0.3);
             
-            // Remove from DOM after animation completes
             setTimeout(() => {
                 if (this && this.parentNode) {
                     this.style.display = 'none';
                     this.classList.remove('squished');
-                    gameState.activeAnts--;
+                    gameState.activeAnts = Math.max(0, gameState.activeAnts - 1);
                 }
-            }, 300);
+            }, 250);
         });
         
         domElements.antOverlay.appendChild(ant);
         gameState.antPool.push(ant);
     }
     
-    // Set initial state
     gameState.activeAnts = 0;
-    
-    // Schedule first update
     scheduleAntUpdate();
 }
 
-// Schedule the next ant visualization update
 function scheduleAntUpdate() {
-    // Clear any existing update timer first
     clearAntUpdateTimer();
-    
-    // Set new timer
-    const updateInterval = gameState.joy < 10 || gameState.stress > 90 ? 2000 : 800;
-    gameState.antUpdateTimer = setTimeout(updateAntVisualization, updateInterval);
+    const interval = gameState.joy < 20 || gameState.stress > 80 ? 1500 : 600;
+    gameState.antUpdateTimer = setTimeout(updateAntVisualization, interval);
 }
 
-// Clear the ant update timer safely
 function clearAntUpdateTimer() {
     if (gameState.antUpdateTimer) {
         clearTimeout(gameState.antUpdateTimer);
@@ -683,64 +609,41 @@ function clearAntUpdateTimer() {
     }
 }
 
-// Clean up the entire ant system
 function clearAntSystem() {
-    // Clear the update timer
     clearAntUpdateTimer();
-    
-    // Remove all ant elements
     if (domElements.antOverlay) {
         domElements.antOverlay.innerHTML = '';
     }
-    
-    // Reset game container classes
     if (domElements.gameContent) {
-        domElements.gameContent.classList.remove(
-            'text-distortion-light', 
-            'text-distortion-medium', 
-            'text-distortion-heavy'
-        );
+        domElements.gameContent.classList.remove('text-distortion-light', 'text-distortion-medium', 'text-distortion-heavy');
     }
-    
-    // Reset ant-related state
     gameState.activeAnts = 0;
     gameState.antPool = [];
 }
 
-// Update ant visualization based on joy and stress levels
 function updateAntVisualization() {
-    // Skip update if game is over
     if (gameState.isGameOver) return;
     
     try {
-        // Enhanced intensity calculation - more ants at lower joy and higher stress
-        const joyFactor = Math.max(0, 25 - gameState.joy) / 25; 
-        const stressFactor = Math.max(0, gameState.stress - 65) / 35;
+        // REBALANCED: More gradual ant appearance
+        const joyFactor = Math.max(0, 35 - gameState.joy) / 35;
+        const stressFactor = Math.max(0, gameState.stress - 55) / 45;
+        const antIntensity = Math.max(joyFactor * 0.7, stressFactor * 0.9);
         
-        // Combined factor - both stress and low joy contribute to ant infestation
-        const antIntensity = Math.max(joyFactor, stressFactor * 0.8);
-        
-        // Update text distortion effects
+        // Text distortion
         if (domElements.gameContent) {
-            // Remove all classes first
-            domElements.gameContent.classList.remove(
-                'text-distortion-light', 
-                'text-distortion-medium', 
-                'text-distortion-heavy'
-            );
+            domElements.gameContent.classList.remove('text-distortion-light', 'text-distortion-medium', 'text-distortion-heavy');
             
-            // Add appropriate class based on intensity
-            if (antIntensity > 0.20) domElements.gameContent.classList.add('text-distortion-light');
-            if (antIntensity > 0.45) domElements.gameContent.classList.add('text-distortion-medium');
-            if (antIntensity > 0.70) domElements.gameContent.classList.add('text-distortion-heavy');
+            if (antIntensity > 0.25) domElements.gameContent.classList.add('text-distortion-light');
+            if (antIntensity > 0.55) domElements.gameContent.classList.add('text-distortion-medium');
+            if (antIntensity > 0.80) domElements.gameContent.classList.add('text-distortion-heavy');
         }
         
-        // Interactive ants - only proceed if antPool exists
+        // Interactive ants
         if (gameState.antPool && gameState.antPool.length > 0) {
             const maxAnts = Math.floor(antIntensity * gameState.antPool.length);
             const currentAnts = gameState.activeAnts || 0;
             
-            // Add or remove ants gradually
             if (currentAnts < maxAnts) {
                 const unusedAnts = gameState.antPool.filter(ant => ant.style.display === 'none');
                 if (unusedAnts.length > 0) {
@@ -749,7 +652,7 @@ function updateAntVisualization() {
                     ant.style.left = `${Math.random() * 90}%`;
                     ant.style.transform = `rotate(${Math.random() * 360}deg)`;
                     ant.style.display = 'block';
-                    gameState.activeAnts = (gameState.activeAnts || 0) + 1;
+                    gameState.activeAnts++;
                 }
             } else if (currentAnts > maxAnts) {
                 const visibleAnts = gameState.antPool.filter(ant => ant.style.display !== 'none');
@@ -759,24 +662,19 @@ function updateAntVisualization() {
                 }
             }
             
-            // Move existing ants randomly to create animation effect
             moveAnts();
         }
         
-        // Schedule next update
         scheduleAntUpdate();
     } catch (error) {
-        console.error("Error in ant visualization:", error);
-        // Still schedule next update to recover from errors
+        console.error("Ant visualization error:", error);
         scheduleAntUpdate();
     }
 }
 
-// Move existing ants randomly
 function moveAnts() {
     if (gameState.isGameOver) return;
     
-    // Only get the ants that are currently visible
     const visibleAnts = gameState.antPool.filter(ant => ant.style.display !== 'none');
     
     visibleAnts.forEach(ant => {
@@ -784,155 +682,113 @@ function moveAnts() {
             const currentTop = parseFloat(ant.style.top) || 0;
             const currentLeft = parseFloat(ant.style.left) || 0;
             
-            // Calculate new positions with boundaries
-            const newTop = Math.max(0, Math.min(95, currentTop + (Math.random() * 10) - 5));
-            const newLeft = Math.max(0, Math.min(95, currentLeft + (Math.random() * 10) - 5));
+            const newTop = Math.max(0, Math.min(95, currentTop + (Math.random() * 8) - 4));
+            const newLeft = Math.max(0, Math.min(95, currentLeft + (Math.random() * 8) - 4));
             
-            // Apply new positions
             ant.style.top = `${newTop}%`;
             ant.style.left = `${newLeft}%`;
-        } catch (e) {
-            // Silently ignore any errors with individual ants
-        }
+        } catch (e) {}
     });
-}
-
-// Legacy function for backward compatibility
-function updateAntOverlay() {
-    // Just call visualization to update the ants
-    updateAntVisualization();
 }
 
 // ========================================================================
 // CORE GAME MECHANICS
 // ========================================================================
 
-// Process stat interactions and check for game over
 function processStatInteractions() {
     if (gameState.isGameOver) return;
     
-    // Track streak of days with high stress
-    if (gameState.stress > 70) {
-        gameState.streaks.daysWithHighStress++;
-    } else {
-        gameState.streaks.daysWithHighStress = 0;
+    // Hunger stress escalation
+    if (gameState.fullness <= 25) {
+        const hungerSeverity = (25 - gameState.fullness) / 25;
+        updateStat('stress', hungerSeverity * 1.5);
+        updateStat('joy', -hungerSeverity * 1.2);
     }
     
-    // Track streak of days with low joy
-    if (gameState.joy < 30) {
-        gameState.streaks.daysWithLowJoy++;
-    } else {
-        gameState.streaks.daysWithLowJoy = 0;
+    // Stress impacts joy
+    if (gameState.stress > 55) {
+        const stressSeverity = (gameState.stress - 55) / 45;
+        updateStat('joy', -stressSeverity * 0.8);
     }
     
-    // Hunger effects are more severe the longer you go without eating
-    if (gameState.fullness <= 20) {
-        const hungerSeverity = 1 + (0.2 * Math.min(3, gameState.streaks.daysWithoutFood));
-        updateStat('stress', (20 - gameState.fullness) / 10 * hungerSeverity);
-        updateStat('joy', -(20 - gameState.fullness) / 8 * hungerSeverity);
+    // High joy reduces stress slightly
+    if (gameState.joy > 80 && gameState.stress > 15) {
+        updateStat('stress', -0.2);
     }
     
-    // Stress impacts joy more severely when high for multiple days
-    if (gameState.stress > 60) {
-        const stressSeverity = 1 + (0.3 * Math.min(3, gameState.streaks.daysWithHighStress));
-        updateStat('joy', -(gameState.stress - 60) / 20 * stressSeverity);
-    }
-    
-    // Joy can slightly reduce stress when very high
-    if (gameState.joy > 85 && gameState.stress > 10) {
-        updateStat('stress', -0.3);
-    }
-    
-    // Check for game over conditions
     checkGameOverConditions();
 }
 
-// Advance time by specified number of time slots with activity-based decay
 function advanceTime(slots, activityType = 'idle') {
     if (gameState.isGameOver) return;
     
     gameState.time += slots;
     
-    // If time passes midnight, advance to next day
     if (gameState.time >= 10) {
         gameState.time = 0;
         gameState.day += 1;
         
-        // Check if week is over
         if (gameState.day > 4) {
             finishGame();
             return;
         }
         
-        // New day updates
         startNewDay();
     }
     
-    // Apply appropriate decay based on activity type
     const decay = DECAY_RATES[activityType] || DECAY_RATES.idle;
     updateStat('fullness', -decay.fullness * slots);
     updateStat('joy', -decay.joy * slots);
     updateStat('stress', decay.stress * slots);
     
-    // Time-based events
     checkTimeBasedEvents();
-    
     updateUI();
 }
 
-// Check for game over conditions
 function checkGameOverConditions() {
     if (gameState.isGameOver) return false;
     
-    // Add warnings at critical levels
-    if (gameState.joy <= 15 && gameState.joy > 0) {
-        // Add visual feedback for low joy - only if there isn't already a warning
-        if (domElements.narrativeText && !document.querySelector('.joy-warning')) {
-            const warningMsg = document.createElement('p');
-            warningMsg.className = 'joy-warning warning-text';
-            warningMsg.textContent = "You're feeling deeply depressed. The ants are closing in. Find some joy in your life soon!";
-            domElements.narrativeText.appendChild(warningMsg);
-        }
+    // Show warnings before game over
+    if (gameState.joy <= 20 && gameState.joy > 0) {
+        addWarningIfNotPresent('joy-warning', getAntThought());
     }
     
-    if (gameState.stress >= 85 && gameState.stress < 100) {
-        // Add visual feedback for high stress - only if there isn't already a warning
-        if (domElements.narrativeText && !document.querySelector('.stress-warning')) {
-            const warningMsg = document.createElement('p');
-            warningMsg.className = 'stress-warning warning-text';
-            warningMsg.textContent = "Your stress level is dangerously high. Take some time to relax or you'll break down!";
-            domElements.narrativeText.appendChild(warningMsg);
-        }
+    if (gameState.stress >= 80 && gameState.stress < 100) {
+        addWarningIfNotPresent('stress-warning', "Your stress is overwhelming. The pressure is becoming unbearable.");
     }
     
-    // Game over conditions
+    // REBALANCED: Resilience system for new players
     if (gameState.joy <= 0) {
-        gameOver("You've completely lost your joy and will to continue. The ants have won, overwhelming your existence. You give up.");
+        if (gameState.resiliencePoints > 0) {
+            gameState.resiliencePoints--;
+            gameState.joy = 10;
+            showResilienceMessage("Something inside you refuses to give up. You find a small reserve of strength.");
+            return false;
+        }
+        gameOver("The weight of everything has crushed your spirit. The ants have won, filling every corner of your mind. You can't continue.");
         return true;
     }
     
     if (gameState.stress >= 100) {
-        gameOver("The stress has become too much to bear. You've suffered a breakdown and can no longer continue.");
+        if (gameState.resiliencePoints > 0) {
+            gameState.resiliencePoints--;
+            gameState.stress = 85;
+            showResilienceMessage("At the breaking point, you somehow pull back from the edge. But barely.");
+            return false;
+        }
+        gameOver("The stress has shattered you completely. Your body refuses to function. You've collapsed.");
         return true;
     }
     
-    // Add a super critical hunger state
     if (gameState.fullness <= 0) {
         gameState.fullness = 0;
-        updateStat('stress', 2.0);
-        updateStat('joy', -2.5);
+        updateStat('stress', 2.5);
+        updateStat('joy', -3);
         
-        // Add visual feedback for critical hunger
-        if (domElements.narrativeText && !document.querySelector('.critical-warning')) {
-            const warningMsg = document.createElement('p');
-            warningMsg.className = 'critical-warning';
-            warningMsg.textContent = "You're starving! Find food immediately or you won't last much longer!";
-            domElements.narrativeText.appendChild(warningMsg);
-        }
+        addWarningIfNotPresent('critical-warning', "You're starving! Your body is shutting down. Find food immediately!");
         
-        // If both stress is high and fullness is zero
-        if (gameState.stress >= 85) {
-            gameOver("Exhausted from hunger and overwhelmed by stress, you collapse. Remember to eat and manage your stress next time.");
+        if (gameState.stress >= 90) {
+            gameOver("Exhausted from hunger and overwhelmed by stress, you collapse. Your body has given out.");
             return true;
         }
     }
@@ -940,275 +796,188 @@ function checkGameOverConditions() {
     return false;
 }
 
-// Events that might occur based on time
+function addWarningIfNotPresent(className, text) {
+    if (domElements.narrativeText && !document.querySelector(`.${className}`)) {
+        const warning = document.createElement('p');
+        warning.className = className;
+        warning.textContent = text;
+        domElements.narrativeText.appendChild(warning);
+    }
+}
+
+function showResilienceMessage(text) {
+    if (domElements.narrativeText) {
+        const msg = document.createElement('div');
+        msg.className = 'event-notification';
+        msg.innerHTML = `<p><strong>A moment of resilience:</strong> ${text}</p><p><em>Resilience points remaining: ${gameState.resiliencePoints}</em></p>`;
+        domElements.narrativeText.appendChild(msg);
+    }
+}
+
 function checkTimeBasedEvents() {
-    // Reset event flag at the start of each day
-    if (gameState.time === 0) { 
+    if (gameState.time === 0) {
         gameState.hadRandomEventToday = false;
+        gameState.mealsToday = 0;
         
-        // Track days without food
-        if (gameState.lastMealTime === -1 || 
-            (gameState.day > 0 && gameState.lastMealTime < (gameState.day * 10))) {
+        if (gameState.mealsToday === 0) {
             gameState.streaks.daysWithoutFood++;
         } else {
             gameState.streaks.daysWithoutFood = 0;
         }
     }
     
-    // Only trigger random events if not already had one today
+    // Random events
     if (!gameState.hadRandomEventToday) {
-        // Base event chance increases throughout the day
-        let eventChance = 0.15;
+        let eventChance = 0.12;
+        if (gameState.time > 4) eventChance = 0.18;
+        if (gameState.time >= 8) eventChance = 0.6;
+        if (gameState.stress > 65) eventChance += 0.08;
         
-        // Increase chance if day is progressing
-        if (gameState.time > 4) {
-            eventChance = 0.20;
-        }
-        
-        // If it's late, high chance
-        if (gameState.time >= 8) {
-            eventChance = 0.75;
-        }
-        
-        // Stress increases event chances
-        if (gameState.stress > 70) {
-            eventChance += 0.1;
-        }
-        
-        // Apply class modifier to event chance
         if (gameState.class) {
             eventChance *= CLASS_MODIFIERS[gameState.class].eventChance;
         }
         
-        // Now check if event should trigger
         if (Math.random() < eventChance) {
             gameState.hadRandomEventToday = true;
             triggerRandomEvent();
         }
     }
     
-    // Check for day-specific events
+    // Tuesday deadline assignment
     if (gameState.day === 1 && gameState.time === 1 && !gameState.deadline) {
-        // Tuesday morning - boss assigns impossible deadline
-        gameState.deadline = 100; // Amount of work needed
+        gameState.deadline = 100;
     }
     
-    // Wednesday family emergency (time = 4 is afternoon)
+    // Wednesday family emergency
     if (gameState.day === 2 && gameState.time === 4 && !gameState.hasFamilyEmergency) {
-        if (domElements.narrativeText) {
-            domElements.narrativeText.innerHTML = `
-                <h2>Family Emergency</h2>
-                <p>Your phone rings unexpectedly in the middle of the afternoon. It's a call from home.</p>
-            `;
-        }
-        setTimeout(() => triggerFamilyEmergency(), 1000);
-        return true; // Indicate we've handled this time slot
-    }
-    
-    return false;
-}
-
-// Apply inflation to food prices
-function inflateEconomy(percentage) {
-    // Store before prices for comparison
-    const beforePrices = {
-        "Roadside meal": FOOD_OPTIONS.find(f => f.name === "Jollof rice").cost,
-        "Restaurant meal": FOOD_OPTIONS.find(f => f.name === "Creamy pasta").cost,
-        "Transport": 7500 // Uber base price
-    };
-    
-    // Apply inflation
-    for (let i = 0; i < FOOD_OPTIONS.length; i++) {
-        FOOD_OPTIONS[i].cost = Math.round(FOOD_OPTIONS[i].cost * (1 + percentage / 100));
-    }
-    
-    // Calculate after prices
-    const afterPrices = {
-        "Roadside meal": FOOD_OPTIONS.find(f => f.name === "Jollof rice").cost,
-        "Restaurant meal": FOOD_OPTIONS.find(f => f.name === "Creamy pasta").cost,
-        "Transport": Math.round(7500 * (1 + percentage / 100))
-    };
-    
-    // Create an inflation report
-    let inflationReport = `
-        <div class="inflation-report">
-            <h3>Economic Update: ${percentage}% Inflation</h3>
-            <p>Prices have increased across Lagos:</p>
-            <table class="price-table">
-                <tr>
-                    <th>Item</th>
-                    <th>Before</th>
-                    <th>After</th>
-                    <th>Increase</th>
-                </tr>
-    `;
-    
-    // Add rows for each item
-    for (const [item, before] of Object.entries(beforePrices)) {
-        const after = afterPrices[item];
-        const increase = after - before;
-        
-        inflationReport += `
-            <tr>
-                <td>${item}</td>
-                <td>₦${before.toLocaleString()}</td>
-                <td>₦${after.toLocaleString()}</td>
-                <td>+₦${increase.toLocaleString()}</td>
-            </tr>
-        `;
-    }
-    
-    inflationReport += `
-            </table>
-            <p class="warning-text">Your wallet feels lighter already. You'll need to be more careful with spending.</p>
-        </div>
-    `;
-    
-    // Display the report
-    if (domElements.narrativeText) {
-        domElements.narrativeText.innerHTML += inflationReport;
-    }
-}
-
-// Schedule sickness to occur in 2 days
-function scheduleSickness() {
-    // Set sickness to occur 2 days later
-    gameState.sicknessDay = gameState.day + 2;
-    gameState.sicknessScheduled = true;
-}
-
-// Check for community support based on class
-function checkForCommunitySupport() {
-    if (!gameState.class) return false;
-    
-    const supportChance = CLASS_MODIFIERS[gameState.class].communitySupport;
-    if (Math.random() < supportChance) {
-        if (domElements.narrativeText) {
-            domElements.narrativeText.innerHTML += `
-                <p>A neighbor stops by to offer help during your difficult time.
-                They've brought some food and encouragement.</p>
-            `;
-        }
-        updateStat('fullness', 25);
-        updateStat('joy', 12);
-        updateStat('stress', -8);
+        triggerFamilyEmergency();
         return true;
     }
+    
     return false;
 }
 
-// Random events
-function triggerRandomEvent() {
-    // Enhanced good events
-    const goodEvents = [
-        {
-            name: "Help Crossing Road",
-            description: "You help an elderly person cross the busy road. They thank you warmly and share some wisdom with you.",
-            effects: { joy: 10, stress: -5, fullness: 0, money: 0 }
-        },
-        {
-            name: "Free Meal",
-            description: "A colleague buys lunch for everyone in the office today.",
-            effects: { joy: 12, stress: -6, fullness: 30, money: 0 }
-        },
-        {
-            name: "Unexpected Bonus",
-            description: "Your boss gives you a small bonus for your recent work. Every naira helps in this economy.",
-            effects: { joy: 15, stress: -10, fullness: 0, money: 20000 }
-        },
-        {
-            name: "Good Weather",
-            description: "The weather is unusually pleasant today, lifting everyone's spirits. A rare respite from Lagos heat.",
-            effects: { joy: 12, stress: -12, fullness: 0, money: 0 }
-        },
-        {
-            name: "Encouraging Message",
-            description: "You receive an encouraging message from a friend right when you needed it most.",
-            effects: { joy: 15, stress: -8, fullness: 0, money: 0 }
-        },
-        {
-            name: "Found Discount",
-            description: "You discover a special discount on everyday items at a local store.",
-            effects: { joy: 8, stress: -5, fullness: 0, money: 5000 }
-        },
-        {
-            name: "Generator Efficiency",
-            description: "Your generator is running exceptionally well today, using less fuel than usual.",
-            effects: { joy: 10, stress: -8, fullness: 0, money: 3000 }
-        }
-    ];
+// REBALANCED: Inflation is less devastating
+function inflateEconomy(percentage) {
+    const actualPercentage = Math.min(percentage, 18); // Cap inflation
     
-    // Enhanced bad events
-    const badEvents = [
-        {
-            name: "Price Increase",
-            description: "You notice that the price of your regular groceries has increased.",
-            effects: { joy: -8, stress: 15, fullness: 0, money: -8000 }
-        },
-        {
-            name: "Technology Failure",
-            description: "Your laptop crashes, losing some of your work progress. Recovery will take precious time.",
-            effects: { joy: -15, stress: 20, fullness: 0, money: 0 }
-        },
-        {
-            name: "Work Pressure",
-            description: "Your boss adds more tasks to your already heavy workload with an unreasonable deadline.",
-            effects: { joy: -10, stress: 20, fullness: 0, money: 0 }
-        },
-        {
-            name: "Minor Illness",
-            description: "You come down with a mild fever and headache. It makes you miserable.",
-            effects: { joy: -15, stress: 12, fullness: -10, money: -5000 }
-        },
-        {
-            name: "Lost Item",
-            description: "You realize you've lost your favorite pen. It was a gift.",
-            effects: { joy: -10, stress: 8, fullness: 0, money: 0 }
-        },
-        {
-            name: "Phone Problems",
-            description: "Your phone is acting up and needs repairs soon.",
-            effects: { joy: -12, stress: 15, fullness: 0, money: -35000 }
-        },
-        {
-            name: "Burst Pipe",
-            description: "A pipe has burst in your building, affecting your water supply.",
-            effects: { joy: -15, stress: 18, fullness: -5, money: -10000 }
-        },
-        {
-            name: "Bank Fees",
-            description: "Your bank has charged unexpected fees for account maintenance.",
-            effects: { joy: -8, stress: 10, fullness: 0, money: -4500 }
-        }
-    ];
-    
-    // Determine if event is good or bad with class-based probability
-    let goodEventChance = 0.35;
-    if (gameState.class) {
-        goodEventChance = CLASS_MODIFIERS[gameState.class].goodEventChance;
+    for (let food of FOOD_OPTIONS) {
+        food.cost = Math.round(food.cost * (1 + actualPercentage / 100));
     }
     
-    // Stress and joy influence event chance
-    if (gameState.stress > 70) goodEventChance -= 0.1;
-    if (gameState.joy < 30) goodEventChance -= 0.1;
-    
-    const isGoodEvent = Math.random() < goodEventChance;
-    const eventsList = isGoodEvent ? goodEvents : badEvents;
-    
-    // Select random event
-    const selectedEvent = eventsList[Math.floor(Math.random() * eventsList.length)];
-    
-    // Apply event effects
-    updateStat('joy', selectedEvent.effects.joy);
-    updateStat('stress', selectedEvent.effects.stress);
-    updateStat('fullness', selectedEvent.effects.fullness);
-    updateStat('money', selectedEvent.effects.money);
-    
-    // Display event
     if (domElements.narrativeText) {
         domElements.narrativeText.innerHTML += `
             <div class="event-notification">
-                <p><strong>${selectedEvent.name}:</strong> ${selectedEvent.description}</p>
+                <p><strong>📈 Economic Update:</strong> Prices have risen by approximately ${actualPercentage}%. 
+                Your naira stretches a little less today.</p>
+            </div>
+        `;
+    }
+}
+
+// ========================================================================
+// RANDOM EVENTS - REBALANCED
+// ========================================================================
+
+function triggerRandomEvent() {
+    const goodEvents = [
+        {
+            name: "Acts of Kindness",
+            description: "You help someone carry their bags across the busy road. They thank you warmly, and the moment of connection lifts your spirits.",
+            effects: { joy: 8, stress: -5, fullness: 0, money: 0 }
+        },
+        {
+            name: "Office Treat",
+            description: "A colleague brought small chops for everyone. The office feels lighter today.",
+            effects: { joy: 10, stress: -4, fullness: 20, money: 0 }
+        },
+        {
+            name: "Unexpected Bonus",
+            description: "Your manager slips you a small cash bonus for your recent effort. \"Don't tell the others,\" she winks.",
+            effects: { joy: 12, stress: -8, fullness: 0, money: 15000 }
+        },
+        {
+            name: "Cool Weather",
+            description: "The harmattan breeze brings relief from the usual Lagos heat. Everyone seems a bit more human today.",
+            effects: { joy: 10, stress: -10, fullness: 0, money: 0 }
+        },
+        {
+            name: "Found Money",
+            description: "You find a crumpled note on the ground - ₦2,000. Small mercies.",
+            effects: { joy: 6, stress: -3, fullness: 0, money: 2000 }
+        },
+        {
+            name: "Generator Works",
+            description: "For once, NEPA cooperates and your generator stays off all day. Fuel saved, stress avoided.",
+            effects: { joy: 8, stress: -6, fullness: 0, money: 4000 }
+        },
+        {
+            name: "Encouragement",
+            description: "An old friend messages you out of nowhere with words of encouragement. You feel less alone.",
+            effects: { joy: 14, stress: -6, fullness: 0, money: 0 }
+        }
+    ];
+    
+    const badEvents = [
+        {
+            name: "Price Increase",
+            description: "Your regular lunch spot has raised prices again. The vendor shrugs apologetically.",
+            effects: { joy: -5, stress: 10, fullness: 0, money: -3000 }
+        },
+        {
+            name: "Tech Problems",
+            description: "Your phone screen cracks. Not badly, but enough to be annoying. Repair will cost money you don't want to spend.",
+            effects: { joy: -8, stress: 12, fullness: 0, money: 0 }
+        },
+        {
+            name: "Extra Work",
+            description: "Your boss drops another task on your desk. \"I need this by end of day.\" No room for negotiation.",
+            effects: { joy: -6, stress: 15, fullness: 0, money: 0 }
+        },
+        {
+            name: "Headache",
+            description: "A splitting headache develops. The noise of Lagos feels twice as loud.",
+            effects: { joy: -10, stress: 8, fullness: -5, money: -2000 }
+        },
+        {
+            name: "Lost Item",
+            description: "You can't find your earphones anywhere. It's a small thing, but it stings.",
+            effects: { joy: -6, stress: 5, fullness: 0, money: 0 }
+        },
+        {
+            name: "Traffic Jam",
+            description: "An unexpected go-slow delays everything. You sit in traffic, watching time drain away.",
+            effects: { joy: -7, stress: 12, fullness: -5, money: -1500 }
+        },
+        {
+            name: "Bank Charges",
+            description: "Your bank has deducted mysterious \"maintenance fees.\" Again.",
+            effects: { joy: -5, stress: 8, fullness: 0, money: -3500 }
+        }
+    ];
+    
+    // Determine event type
+    let goodChance = 0.40;
+    if (gameState.class) {
+        goodChance = CLASS_MODIFIERS[gameState.class].goodEventChance;
+    }
+    if (gameState.stress > 65) goodChance -= 0.08;
+    if (gameState.joy < 35) goodChance -= 0.08;
+    
+    const isGood = Math.random() < goodChance;
+    const events = isGood ? goodEvents : badEvents;
+    const event = events[Math.floor(Math.random() * events.length)];
+    
+    // Apply effects
+    updateStat('joy', event.effects.joy);
+    updateStat('stress', event.effects.stress);
+    updateStat('fullness', event.effects.fullness);
+    updateStat('money', event.effects.money);
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML += `
+            <div class="event-notification">
+                <p><strong>${event.name}:</strong> ${event.description}</p>
             </div>
         `;
     }
@@ -1216,85 +985,138 @@ function triggerRandomEvent() {
     updateUI();
 }
 
-// Day state functions
+// ========================================================================
+// DAY PROGRESSION
+// ========================================================================
+
 function startNewDay() {
-    // Check for overnight rain
-    gameState.rainedYesterday = Math.random() < 0.20;
-    
-    // Reset some daily flags
+    gameState.rainedYesterday = Math.random() < 0.25;
     gameState.isWorking = false;
     gameState.hadRandomEventToday = false;
+    gameState.mealsToday = 0;
+    gameState.workdayStage = 0;
     
-    // Check for sickness from roadside food
-    if (gameState.sicknessScheduled && gameState.day === gameState.sicknessDay) {
-        gameState.isSick = true;
-        gameState.sicknessScheduled = false; // Reset so it doesn't trigger again
-        
-        if (domElements.narrativeText) {
-            domElements.narrativeText.innerHTML = `
-                <h2>You're Sick!</h2>
-                <p>The roadside food you ate earlier this week has made you ill. You're miserable.</p>
-            `;
-        }
-        
-        updateStat('joy', -20);
-        updateStat('stress', 25);
-        
-        if (domElements.choicesContainer) {
-            domElements.choicesContainer.innerHTML = `
-                <button class="choice-btn" onclick="restAtHome()">Rest at home</button>
-                <button class="choice-btn" onclick="buyMedicine()">Buy medicine (₦10,000)</button>
-            `;
-        }
-        
-        return; // Skip normal morning routine
+    // Check sickness from food
+    if (gameState.isSick && gameState.sicknessType === 'food') {
+        showSicknessEvent();
+        return;
     }
     
-    // Check for drug comedown
-    if (gameState.drugComedownDay === gameState.day) {
-        if (domElements.narrativeText) {
-            domElements.narrativeText.innerHTML = `
-                <h2>The Morning After</h2>
-                <p>You wake up feeling terrible from last night's indulgence. The comedown is rough.</p>
-            `;
-        }
-        
-        updateStat('joy', -30);
-        updateStat('stress', 35);
-        updateStat('fullness', -15);
-        
-        gameState.drugComedownDay = null;
-    } else {
-        // Day-specific events
-        if (gameState.day === 1) {
-            // Tuesday dawn
-            startTuesday();
-        } else if (gameState.day === 2) {
-            // Wednesday dawn
-            startWednesday();
-        } else if (gameState.day === 3) {
-            // Thursday dawn
-            startThursday();
-        } else if (gameState.day === 4) {
-            // Friday dawn
-            startFriday();
-        }
+    // Day-specific events
+    switch(gameState.day) {
+        case 1: startTuesday(); break;
+        case 2: startWednesday(); break;
+        case 3: startThursday(); break;
+        case 4: startFriday(); break;
+    }
+    
+    updateUI();
+}
+
+function showSicknessEvent() {
+    gameState.isSick = true;
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <h2>You're Sick</h2>
+            <p>That food from earlier has caught up with you. Your stomach churns and your head pounds. 
+            The ants seem to dance in your peripheral vision.</p>
+            <p><em>${getAntThought()}</em></p>
+        `;
+    }
+    
+    updateStat('joy', -15);
+    updateStat('stress', 18);
+    
+    if (domElements.choicesContainer) {
+        const medicineCost = modifyCost(8000);
+        domElements.choicesContainer.innerHTML = `
+            <button class="choice-btn" onclick="restAtHome()">Rest at home (lose the day)</button>
+            <button class="choice-btn" onclick="buyMedicine(${medicineCost})">Buy medicine and push through (₦${medicineCost.toLocaleString()})</button>
+            <button class="choice-btn" onclick="ignoreSickness()">Ignore it and go to work anyway</button>
+        `;
     }
 }
 
-// Day-specific functions
+function restAtHome() {
+    gameState.isSick = false;
+    gameState.sicknessType = null;
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <h2>Rest Day</h2>
+            <p>You spend the day in bed, letting your body recover. The hours pass slowly, 
+            but by evening you feel almost human again.</p>
+        `;
+    }
+    
+    updateStat('joy', -5);
+    updateStat('stress', -15);
+    updateStat('fullness', -25);
+    
+    advanceTime(8, 'sleep');
+    goToSleep();
+}
+
+function buyMedicine(cost) {
+    if (gameState.money < cost) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>You can't afford medicine right now.</p>`;
+        }
+        return;
+    }
+    
+    gameState.isSick = false;
+    gameState.sicknessType = null;
+    
+    updateStat('money', -cost);
+    updateStat('stress', 5);
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <h2>Pushing Through</h2>
+            <p>You down some medication and force yourself to function. The day will be hard, 
+            but you'll manage.</p>
+        `;
+    }
+    
+    showMorningOptions();
+}
+
+function ignoreSickness() {
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <h2>Pushing Through</h2>
+            <p>You ignore your body's protests and head to work anyway. Every step is a battle, 
+            but you refuse to give in.</p>
+        `;
+    }
+    
+    updateStat('stress', 20);
+    updateStat('joy', -10);
+    
+    // 50% chance of getting worse
+    if (Math.random() < 0.5) {
+        gameState.isSick = true; // Will continue tomorrow
+    } else {
+        gameState.isSick = false;
+        gameState.sicknessType = null;
+    }
+    
+    showMorningOptions();
+}
+
 function startTuesday() {
     if (domElements.narrativeText) {
         domElements.narrativeText.innerHTML = `
             <h2>Tuesday Morning</h2>
-            <p>You wake up to the sound of your alarm.</p>
-            <p>You check your phone and see reports of further inflation. Prices have risen overnight.</p>
+            <p>You wake to the familiar sounds of Lagos - distant generators, the call of street vendors, 
+            the endless hum of a city that never truly sleeps.</p>
+            <p>Your phone buzzes with news alerts. Prices have risen again.</p>
         `;
     }
     
-    // Tuesday's inflation effect
-    inflateEconomy(15);
-    
+    inflateEconomy(12);
     showMorningOptions();
 }
 
@@ -1302,8 +1124,8 @@ function startWednesday() {
     if (domElements.narrativeText) {
         domElements.narrativeText.innerHTML = `
             <h2>Wednesday Morning</h2>
-            <p>You wake up on the third day of your work week. The city seems particularly busy today.</p>
-            <p>Traffic reports indicate there will be major congestion on all routes.</p>
+            <p>Hump day. You're halfway through the week. The city outside your window 
+            seems particularly chaotic today - traffic reports warn of major delays on all routes.</p>
         `;
     }
     
@@ -1314,28 +1136,21 @@ function startThursday() {
     if (domElements.narrativeText) {
         domElements.narrativeText.innerHTML = `
             <h2>Thursday Morning</h2>
-            <p>You wake up feeling the weight of the week so far.</p>
-            <p>You check your phone and see reports of even more inflation. Prices continue to rise dramatically.</p>
+            <p>The week's weight presses down on your shoulders. Your phone shows more bad economic news.</p>
         `;
     }
     
-    // Thursday's inflation effect
-    inflateEconomy(20);
+    inflateEconomy(15);
     
-    // Check deadline status
     if (gameState.deadline > 0) {
-        const progressPercent = Math.round((gameState.deadlineProgress / gameState.deadline) * 100);
-        
+        const progress = Math.round((gameState.deadlineProgress / gameState.deadline) * 100);
         if (domElements.narrativeText) {
-            domElements.narrativeText.innerHTML += `<p>You're ${progressPercent}% done with your deadline project. Friday is coming soon.</p>`;
+            domElements.narrativeText.innerHTML += `<p>Your deadline project is ${progress}% complete. Friday is tomorrow.</p>`;
         }
         
-        if (progressPercent < 50) {
-            if (domElements.narrativeText) {
-                domElements.narrativeText.innerHTML += `<p>You're significantly behind schedule. Your stress increases as you think about tomorrow's deadline.</p>`;
-            }
-            
-            updateStat('stress', 15);
+        if (progress < 50) {
+            domElements.narrativeText.innerHTML += `<p class="warning-text">You're significantly behind. The ants are getting louder.</p>`;
+            updateStat('stress', 12);
         }
     }
     
@@ -1346,491 +1161,334 @@ function startFriday() {
     if (domElements.narrativeText) {
         domElements.narrativeText.innerHTML = `
             <h2>Friday Morning</h2>
-            <p>It's the final workday of the week. You've almost made it.</p>
-            <p>The economic situation continues to worsen. Prices have increased yet again.</p>
+            <p>The final day. If you can make it through today, you'll have survived another week in Lagos.</p>
         `;
     }
     
-    // Friday's inflation effect
-    inflateEconomy(25);
+    inflateEconomy(18);
     
-    // Check deadline status
     if (gameState.deadline > 0) {
-        const progressPercent = Math.round((gameState.deadlineProgress / gameState.deadline) * 100);
-        
+        const progress = Math.round((gameState.deadlineProgress / gameState.deadline) * 100);
         if (domElements.narrativeText) {
-            domElements.narrativeText.innerHTML += `<p>Today is the deadline for your project, and you're ${progressPercent}% complete.</p>`;
+            domElements.narrativeText.innerHTML += `<p>Today is D-Day. Your project is ${progress}% complete.</p>`;
         }
         
-        if (progressPercent < 85) {
-            if (domElements.narrativeText) {
-                domElements.narrativeText.innerHTML += `<p>You're not going to make the deadline without even more stress! You feel sick at the thought.</p>`;
-            }
-            
-            updateStat('stress', 25);
+        if (progress < 80) {
+            domElements.narrativeText.innerHTML += `<p class="critical-warning">You won't make the deadline at this rate. Panic sets in.</p>`;
+            updateStat('stress', 20);
         } else {
-            if (domElements.narrativeText) {
-                domElements.narrativeText.innerHTML += `<p>You're on track to complete the project today, though it will still require focus.</p>`;
-            }
-            
-            updateStat('stress', 10);
+            domElements.narrativeText.innerHTML += `<p>You can finish this. Just stay focused.</p>`;
+            updateStat('stress', 8);
         }
     }
     
     showMorningOptions();
 }
 
-// Wednesday's family emergency
+// ========================================================================
+// FAMILY EMERGENCY
+// ========================================================================
+
 function triggerFamilyEmergency() {
     gameState.hasFamilyEmergency = true;
     
-    // Severity depends on dice roll
-    const severity = Math.random();
-    let emergencyDesc = "";
-    let moneyNeeded = 0;
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <h2>Family Emergency</h2>
+            <p>Your phone rings. It's home. The voice on the other end is worried.</p>
+        `;
+    }
     
-    if (severity < 0.3) {
-        // Minor emergency
-        emergencyDesc = "Your family member has fallen ill with a mild condition.";
-        moneyNeeded = 40000;
-    } else if (severity < 0.7) {
-        // Moderate emergency
-        emergencyDesc = "Your family member has been in a minor accident and needs medical attention.";
-        moneyNeeded = 90000;
+    // Severity based on chance
+    const severity = Math.random();
+    let emergencyDesc, moneyNeeded;
+    
+    if (severity < 0.4) {
+        emergencyDesc = "A family member needs money for medication. Nothing too serious, but it can't wait.";
+        moneyNeeded = 25000;
+    } else if (severity < 0.8) {
+        emergencyDesc = "There's been an accident. Nothing life-threatening, but hospital bills are adding up.";
+        moneyNeeded = 60000;
     } else {
-        // Severe emergency
-        emergencyDesc = "Your family member has been hospitalized with a serious condition.";
-        moneyNeeded = 180000;
+        emergencyDesc = "A family member has been hospitalized. It's serious. They need help immediately.";
+        moneyNeeded = 120000;
+    }
+    
+    // Community support check
+    if (checkForCommunitySupport()) {
+        moneyNeeded = Math.round(moneyNeeded * 0.6);
+    }
+    
+    // Class-based adjustment
+    if (gameState.class === 'upper') {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `
+                <p>${emergencyDesc}</p>
+                <p>Fortunately, your family has savings and insurance to handle this.</p>
+            `;
+        }
+        updateStat('stress', 10);
+        updateStat('joy', -5);
+        showMorningOptions();
+        return;
     }
     
     if (domElements.narrativeText) {
         domElements.narrativeText.innerHTML += `
-            <p>It's a family emergency. ${emergencyDesc}</p>
+            <p>${emergencyDesc}</p>
+            <p>They need ₦${moneyNeeded.toLocaleString()}.</p>
         `;
     }
     
-    // Check for community support before showing options
-    if (checkForCommunitySupport()) {
-        // If community support happens, reduce the money needed
-        moneyNeeded = Math.round(moneyNeeded * 0.7);
+    if (domElements.choicesContainer) {
+        domElements.choicesContainer.innerHTML = `
+            <button class="choice-btn" onclick="sendMoney(${moneyNeeded})">Send the money (₦${moneyNeeded.toLocaleString()})</button>
+            <button class="choice-btn" onclick="sendPartialMoney(${Math.round(moneyNeeded * 0.5)})">Send what you can (₦${Math.round(moneyNeeded * 0.5).toLocaleString()})</button>
+            <button class="choice-btn" onclick="explainNoMoney()">Explain you can't afford it</button>
+        `;
     }
+}
+
+function checkForCommunitySupport() {
+    if (!gameState.class) return false;
     
-    // Money needed depends on class
-    if (gameState.class === 'working') {
+    const supportChance = CLASS_MODIFIERS[gameState.class].communitySupport;
+    if (Math.random() < supportChance) {
         if (domElements.narrativeText) {
-            domElements.narrativeText.innerHTML += `<p>They need financial help for medical expenses: ₦${moneyNeeded.toLocaleString()}.</p>`;
-        }
-        
-        if (domElements.choicesContainer) {
-            domElements.choicesContainer.innerHTML = `
-                <button class="choice-btn" onclick="sendMoney(${moneyNeeded})">Send money (₦${moneyNeeded.toLocaleString()})</button>
-                <button class="choice-btn" onclick="explainNoMoney()">Explain you can't afford it</button>
+            domElements.narrativeText.innerHTML += `
+                <p>A neighbor who heard about the situation stops by with some food and offers to help cover part of the cost. 
+                "We look out for each other here," they say.</p>
             `;
         }
-    } else if (gameState.class === 'middle') {
-        // 50% chance middle class needs to send money
-        const needToSend = Math.random() < 0.5;
-        if (needToSend) {
-            const middleClassAmount = Math.round(moneyNeeded / 2);
-            
-            if (domElements.narrativeText) {
-                domElements.narrativeText.innerHTML += `<p>They could use some financial assistance: ₦${middleClassAmount.toLocaleString()}.</p>`;
-            }
-            
-            if (domElements.choicesContainer) {
-                domElements.choicesContainer.innerHTML = `
-                    <button class="choice-btn" onclick="sendMoney(${middleClassAmount})">Send money (₦${middleClassAmount.toLocaleString()})</button>
-                    <button class="choice-btn" onclick="explainNoMoney()">Explain you can't afford it</button>
-                `;
-            }
-        } else {
-            if (domElements.narrativeText) {
-                domElements.narrativeText.innerHTML += `<p>Fortunately, they have insurance that covers the expenses.</p>`;
-            }
-            
-            updateStat('stress', 15);
-            showMorningOptions();
-        }
-    } else { // Upper class
+        updateStat('joy', 10);
+        return true;
+    }
+    return false;
+}
+
+function sendMoney(amount) {
+    if (gameState.money < amount) {
         if (domElements.narrativeText) {
-            domElements.narrativeText.innerHTML += `<p>Fortunately, they have good insurance and savings to cover the expenses.</p>`;
+            domElements.narrativeText.innerHTML += `<p>You don't have enough. You'll have to find another way.</p>`;
         }
-        
-        updateStat('stress', 10);
-        showMorningOptions();
-    }
-}
-
-// Game ending functions
-function gameOver(reason) {
-    // Set game over state
-    gameState.isGameOver = true;
-    
-    // Clear any existing timers
-    clearAntUpdateTimer();
-    
-    // Clear all setTimeout timers
-    const highestTimeoutId = setTimeout(() => {}, 0);
-    for (let i = 0; i < highestTimeoutId; i++) {
-        clearTimeout(i);
-    }
-    
-    // Pause all animations
-    document.body.classList.add('transition-pause');
-    
-    // Clear all ants
-    try {
-        const allAnts = document.querySelectorAll('.ant, .interactive-ant');
-        allAnts.forEach(ant => {
-            if (ant && ant.parentNode) {
-                ant.remove();
-            }
-        });
-    } catch (e) {
-        console.error("Error removing ants:", e);
-    }
-    
-    // Clear the game containers
-    if (domElements.narrativeText) domElements.narrativeText.innerHTML = '';
-    if (domElements.choicesContainer) domElements.choicesContainer.innerHTML = '';
-    
-    // Create dedicated game over screen
-    if (domElements.narrativeText) {
-        domElements.narrativeText.innerHTML = `
-            <h2>Game Over</h2>
-            <p>${reason}</p>
-            <p>Your week in Lagos has come to an early end.</p>
-            
-            <h3>Final Statistics:</h3>
-            <p>Day Reached: ${DAYS[gameState.day]}</p>
-            <p>Joy: ${Math.round(gameState.joy)}/100</p>
-            <p>Fullness: ${Math.round(gameState.fullness)}/100</p>
-            <p>Stress: ${Math.round(gameState.stress)}/100</p>
-            <p>Money Remaining: ₦${gameState.money.toLocaleString()}</p>
-        `;
-    }
-    
-    if (domElements.choicesContainer) {
-        domElements.choicesContainer.innerHTML = `
-            <button class="choice-btn" onclick="location.reload()">Start Over</button>
-            <a href="https://pagebookstore.com/products/how-to-get-rid-of-ants" class="preorder-btn" target="_blank">Pre-order "How to Get Rid of Ants"</a>
-        `;
-    }
-    
-    // Add a CSS class to create a distinct game over appearance
-    if (domElements.gameContent) {
-        domElements.gameContent.classList.add('game-over');
-    }
-    
-    // Remove text distortion classes
-    if (domElements.gameContent) {
-        domElements.gameContent.classList.remove(
-            'text-distortion-light',
-            'text-distortion-medium', 
-            'text-distortion-heavy'
-        );
-    }
-}
-
-// Complete game ending
-function finishGame() {
-    // Set game over state to prevent further updates
-    gameState.isGameOver = true;
-    
-    // Determine ending type based on final stats
-    let endingType = "";
-    let endingDescription = "";
-    
-    if (gameState.joy <= 10) {
-        endingType = "Giving Up";
-        endingDescription = "The constant struggles of Lagos life have completely drained your joy. You've surrendered to despair, as the ants spread across your psyche.";
-    } else if (gameState.stress >= 90) {
-        endingType = "Breaking Point";
-        endingDescription = "The pressure became too much. In a moment of clarity disguised as madness, you've decided to make a dramatic change in your life path.";
-    } else if (gameState.joy < 30 || gameState.fullness < 30 || gameState.stress > 70) {
-        endingType = "Survival";
-        endingDescription = "You've made it through the week, but at great cost to your wellbeing.";
-    } else if (gameState.joy >= 50 && gameState.fullness >= 50 && gameState.stress <= 50) {
-        endingType = "Balance";
-        endingDescription = "Despite the challenges, you've managed to find a sustainable balance. It's not easy, but you're making it work.";
-    } else {
-        endingType = "Triumph";
-        endingDescription = "Against all odds, you've not only survived but found ways to thrive in Lagos. Your resilience has paid off, and you face the future with something resembling hope.";
-    }
-    
-    // Check deadline completion
-    let deadlineResult = "";
-    if (gameState.deadline > 0) {
-        const progressPercent = Math.round((gameState.deadlineProgress / gameState.deadline) * 100);
-        
-        if (progressPercent >= 100) {
-            deadlineResult = "You successfully completed your impossible work deadline, earning your boss's reluctant approval.";
-        } else if (progressPercent >= 80) {
-            deadlineResult = "You made substantial progress on your work deadline, enough to avoid the worst consequences.";
-        } else {
-            deadlineResult = "You failed to meet your impossible work deadline, which will have repercussions in the coming weeks.";
-        }
-    }
-    
-    // Clear any existing timers and clean up
-    clearAntUpdateTimer();
-    
-    // Pause all animations
-    document.body.classList.add('transition-pause');
-    
-    // Final stats
-    if (domElements.narrativeText) {
-        domElements.narrativeText.innerHTML = `
-            <h2>The Week Ends: ${endingType}</h2>
-            <p>${endingDescription}</p>
-            <p>${deadlineResult}</p>
-            <h3>Final Statistics:</h3>
-            <p>Joy: ${Math.round(gameState.joy)}/100</p>
-            <p>Fullness: ${Math.round(gameState.fullness)}/100</p>
-            <p>Stress: ${Math.round(gameState.stress)}/100</p>
-            <p>Money Remaining: ₦${gameState.money.toLocaleString()}</p>
-        `;
-    }
-    
-    if (domElements.choicesContainer) {
-        domElements.choicesContainer.innerHTML = `
-            <button class="choice-btn" onclick="location.reload()">Play Again</button>
-            <a href="https://pagebookstore.com/products/how-to-get-rid-of-ants" class="preorder-btn" target="_blank">Pre-order "How to Get Rid of Ants"</a>
-        `;
-    }
-    
-    // Clear ant system
-    clearAntSystem();
-    
-    // Remove text distortion classes
-    if (domElements.gameContent) {
-        domElements.gameContent.classList.remove(
-            'text-distortion-light',
-            'text-distortion-medium', 
-            'text-distortion-heavy'
-        );
-    }
-}
-
-// ========================================================================
-// CHARACTER CREATION FUNCTIONS
-// ========================================================================
-
-// Show character creation screen
-function showCharacterCreation() {
-    if (!domElements.narrativeText || !domElements.choicesContainer) {
-        console.error("Required DOM elements not found for character creation");
         return;
     }
     
+    updateStat('money', -amount);
+    updateStat('joy', -5);
+    updateStat('stress', 8);
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <p>You transfer the money immediately. It hurts financially, but family comes first. 
+            Always has in Lagos.</p>
+        `;
+    }
+    
+    showMorningOptions();
+}
+
+function sendPartialMoney(amount) {
+    if (gameState.money < amount) {
+        explainNoMoney();
+        return;
+    }
+    
+    updateStat('money', -amount);
+    updateStat('joy', -10);
+    updateStat('stress', 12);
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <p>You send what you can. It's not enough, but it's something. 
+            The guilt sits heavy in your chest.</p>
+        `;
+    }
+    
+    showMorningOptions();
+}
+
+function explainNoMoney() {
+    updateStat('joy', -15);
+    updateStat('stress', 20);
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <p>You explain your situation. The silence on the other end speaks volumes. 
+            You know they understand, but it doesn't make it easier.</p>
+            <p><em>${getAntThought()}</em></p>
+        `;
+    }
+    
+    showMorningOptions();
+}
+
+// ========================================================================
+// CHARACTER CREATION
+// ========================================================================
+
+function showCharacterCreation() {
+    if (!domElements.narrativeText || !domElements.choicesContainer) return;
+    
     domElements.narrativeText.innerHTML = `
         <h2>Welcome to Lagos</h2>
+        <p>The city of dreams and struggles. Of hustle and heart. 
+        Of millions of stories playing out every single day.</p>
+        <p>This is yours.</p>
         <p>Can you survive one work week?</p>
-        <p>Each decision will affect your journey and test your limits!</p>
     `;
     
     domElements.choicesContainer.innerHTML = `
-        <h3>Enter your name:</h3>
-        <input type="text" id="player-name" placeholder="Your name" class="name-input">
+        <h3>What's your name?</h3>
+        <input type="text" id="player-name" placeholder="Enter your name" class="name-input" maxlength="20">
         <button class="choice-btn" onclick="setPlayerName()">Continue</button>
     `;
+    
+    // Focus the input
+    setTimeout(() => {
+        const input = document.getElementById('player-name');
+        if (input) input.focus();
+    }, 100);
 }
 
-// Set player name and show job selection
 function setPlayerName() {
     const nameInput = document.getElementById('player-name');
     let playerName = nameInput ? nameInput.value.trim() : '';
     
-    // Default name if empty
     if (!playerName) {
-        playerName = "Traveler";
+        playerName = "Lagosian";
     }
     
-    // Store name in game state
     gameState.playerName = playerName;
     
-    // Show job selection
     if (domElements.narrativeText) {
         domElements.narrativeText.innerHTML = `
-            <h2>Choose Your Career</h2>
-            <p>${playerName}, what is your job in Lagos?</p>
-            <p>Choose carefully - different careers offer different challenges and opportunities.</p>
+            <h2>Choose Your Path</h2>
+            <p>${playerName}, what do you do for a living?</p>
+            <p>Each path has its own challenges and rewards.</p>
         `;
     }
     
     if (domElements.choicesContainer) {
         domElements.choicesContainer.innerHTML = `
-            <button class="choice-btn" onclick="selectJob('marketer')">Marketer</button>
-            <button class="choice-btn" onclick="selectJob('programmer')">Programmer</button>
-            <button class="choice-btn" onclick="selectJob('designer')">Graphic Designer</button>
-            <button class="choice-btn" onclick="selectJob('artist')">Artist</button>
+            <button class="choice-btn" onclick="selectJob('marketer')">
+                <strong>Marketer</strong> - Hustle is your middle name. Client meetings, deadlines, and sales targets.
+            </button>
+            <button class="choice-btn" onclick="selectJob('programmer')">
+                <strong>Software Developer</strong> - Code is your language. Late nights, debugging, and digital solutions.
+            </button>
+            <button class="choice-btn" onclick="selectJob('designer')">
+                <strong>Graphic Designer</strong> - Visuals are your currency. Client revisions, creative blocks, and pixel perfection.
+            </button>
+            <button class="choice-btn" onclick="selectJob('artist')">
+                <strong>Artist</strong> - Your soul is your product. Passion projects, financial uncertainty, and creative freedom.
+            </button>
         `;
     }
 }
 
-// Select job function - now sets up everything automatically
 function selectJob(job) {
     gameState.job = job;
     
-    // Set initial stats based on job
+    // Base stats by job
     switch(job) {
         case 'marketer':
-            gameState.money = 80000;
-            gameState.stress = 30;
-            gameState.joy = 70;
+            gameState.money = 70000;
+            gameState.stress = 25;
+            gameState.joy = 72;
             break;
         case 'programmer':
-            gameState.money = 130000;
-            gameState.stress = 50;
-            gameState.joy = 60;
+            gameState.money = 110000;
+            gameState.stress = 40;
+            gameState.joy = 65;
             break;
         case 'designer':
-            gameState.money = 95000;
-            gameState.stress = 35;
+            gameState.money = 85000;
+            gameState.stress = 30;
             gameState.joy = 75;
             break;
         case 'artist':
-            gameState.money = 40000;
-            gameState.stress = 20;
-            gameState.joy = 90;
+            gameState.money = 35000;
+            gameState.stress = 15;
+            gameState.joy = 88;
             break;
     }
     
-    updateUI();
-    
-    // Automatically assign a social class (without telling the player directly)
-    assignRandomClass();
-}
-
-// Automatically assign social class
-function assignRandomClass() {
-    // Array of possible classes
+    // Assign random class
     const classes = ['working', 'middle', 'upper'];
+    const weights = [0.35, 0.45, 0.20]; // More realistic distribution
+    const roll = Math.random();
     
-    // Randomly select a class
-    const randomClass = classes[Math.floor(Math.random() * classes.length)];
-    gameState.class = randomClass;
+    if (roll < weights[0]) {
+        gameState.class = 'working';
+    } else if (roll < weights[0] + weights[1]) {
+        gameState.class = 'middle';
+    } else {
+        gameState.class = 'upper';
+    }
     
-    // Adjust money based on class
-    const classMultiplier = {
-        'working': 0.7,
-        'middle': 1.0,
-        'upper': 1.5
+    // Apply class modifier to starting money
+    gameState.money = Math.round(gameState.money * CLASS_MODIFIERS[gameState.class].startingMoney);
+    
+    // Assign random age
+    gameState.age = [23, 28, 33][Math.floor(Math.random() * 3)];
+    
+    if (gameState.age >= 28) {
+        gameState.money = Math.round(gameState.money * 1.3);
+        if (gameState.class !== 'working') {
+            gameState.hasTransportation = true;
+        }
+    }
+    
+    // Assign location based on class
+    const locations = {
+        'working': [
+            { name: 'Oshodi', area: 'Lagos Mainland' },
+            { name: 'Mushin', area: 'Lagos Mainland' }
+        ],
+        'middle': [
+            { name: 'Surulere', area: 'Lagos Mainland' },
+            { name: 'Ikeja', area: 'Lagos Mainland' }
+        ],
+        'upper': [
+            { name: 'Victoria Island', area: 'Lagos Island' },
+            { name: 'Lekki', area: 'Lagos Island' }
+        ]
     };
     
-    gameState.money = Math.round(gameState.money * classMultiplier[randomClass]);
-    
-    if (randomClass === 'upper') {
-        updateStat('stress', 10);
-    } else if (randomClass === 'working') {
-        updateStat('joy', 5);
-    }
+    gameState.location = locations[gameState.class][Math.floor(Math.random() * 2)];
+    gameState.companyName = generateCompanyName(job);
     
     updateUI();
-    
-    // Continue to automatic age assignment
-    assignRandomAge();
-}
-
-// Automatically assign age
-function assignRandomAge() {
-    // Array of possible ages
-    const ages = [22, 27, 31];
-    
-    // Randomly select an age
-    const randomAge = ages[Math.floor(Math.random() * ages.length)];
-    gameState.age = randomAge;
-    
-    // Adjust money based on age
-    let ageMultiplier = 1.0;
-    
-    if (randomAge === 27) {
-        ageMultiplier = 1.4;
-        if (gameState.class === 'middle' || gameState.class === 'upper') {
-            gameState.hasTransportation = true;
-        }
-    } else if (randomAge === 31) {
-        ageMultiplier = 1.7;
-        if (gameState.class === 'middle' || gameState.class === 'upper') {
-            gameState.hasTransportation = true;
-        }
-    }
-    
-    gameState.money = Math.round(gameState.money * ageMultiplier);
-    
-    updateUI();
-    
-    // Continue to automatic location assignment
-    assignRandomLocation();
-}
-
-// Automatically assign location based on class
-function assignRandomLocation() {
-    const locations = [];
-    
-    if (gameState.class === 'working') {
-        locations.push({ name: 'Oshodi', area: 'Lagos Mainland' });
-        locations.push({ name: 'Magodo', area: 'Lagos Mainland' });
-    } else if (gameState.class === 'middle') {
-        locations.push({ name: 'Surulere', area: 'Lagos Mainland' });
-        locations.push({ name: 'Ikeja', area: 'Lagos Mainland' });
-    } else if (gameState.class === 'upper') {
-        locations.push({ name: 'Victoria Island', area: 'Lagos Island' });
-        locations.push({ name: 'Lekki', area: 'Lagos Island' });
-    }
-    
-    // Randomly select a location based on the class
-    const randomIndex = Math.floor(Math.random() * locations.length);
-    const selectedLocation = locations[randomIndex];
-    
-    // Store location in game state
-    gameState.location = selectedLocation;
-    
-    updateUI();
-    
-    // Show character summary
     showCharacterSummary();
 }
 
-// Show character summary with all the auto-generated details
 function showCharacterSummary() {
-    const companyName = generateCompanyName(gameState.job);
-    gameState.companyName = companyName;
-    
-    // Format job title
     let jobTitle;
     switch(gameState.job) {
-        case 'marketer':
-            jobTitle = "Marketing Specialist";
-            break;
-        case 'programmer':
-            jobTitle = "Software Developer";
-            break;
-        case 'designer':
-            jobTitle = "Graphic Designer";
-            break;
-        case 'artist':
-            jobTitle = "Visual Artist";
-            break;
-        default:
-            jobTitle = gameState.job.charAt(0).toUpperCase() + gameState.job.slice(1);
+        case 'marketer': jobTitle = "Marketing Executive"; break;
+        case 'programmer': jobTitle = "Software Developer"; break;
+        case 'designer': jobTitle = "Graphic Designer"; break;
+        case 'artist': jobTitle = "Visual Artist"; break;
     }
     
-    // Create summary of player stats and situation
     if (domElements.narrativeText) {
         domElements.narrativeText.innerHTML = `
             <h2>Your Life in Lagos</h2>
-            <p>Welcome ${gameState.playerName}. You are a ${jobTitle} working at ${companyName}.</p>
-            <p>You are ${gameState.age} years old and live in ${gameState.location.name}, ${gameState.location.area}.</p>
+            <p>You are <strong>${gameState.playerName}</strong>, a ${gameState.age}-year-old ${jobTitle} 
+            working at ${gameState.companyName}.</p>
+            <p>You live in ${gameState.location.name}, ${gameState.location.area}.</p>
             
-            <h3>Your Current Situation:</h3>
-            <p>Bank Account: ₦${gameState.money.toLocaleString()}</p>
-            <p>Joy Level: ${gameState.joy}% - ${gameState.joy > 70 ? "You're generally happy" : gameState.joy > 40 ? "You're content" : "You're struggling emotionally"}</p>
-            <p>Stress Level: ${gameState.stress}% - ${gameState.stress < 30 ? "You're relaxed" : gameState.stress < 60 ? "You're managing" : "You're quite stressed"}</p>
-            <p>Fullness: ${gameState.fullness}% - ${gameState.fullness > 70 ? "You're well-fed" : gameState.fullness > 40 ? "You could use a meal soon" : "You're hungry"}</p>
-            ${gameState.hasTransportation ? "<p>You own a car for transportation.</p>" : "<p>You rely on public transportation or walking.</p>"}
+            <div class="status-section">
+                <h3>Current Situation</h3>
+                <p>💰 Bank Balance: ₦${gameState.money.toLocaleString()}</p>
+                <p>😊 Mood: ${gameState.joy > 70 ? "Hopeful" : gameState.joy > 50 ? "Steady" : "Struggling"}</p>
+                <p>😰 Stress: ${gameState.stress < 30 ? "Manageable" : gameState.stress < 50 ? "Building" : "Concerning"}</p>
+                <p>🚗 Transport: ${gameState.hasTransportation ? "You own a car" : "Public transport only"}</p>
+            </div>
             
-            <p class="warning-text">The week ahead will test your ability to balance work, wellbeing, and finances. Good luck!</p>
+            <p>The week ahead will test everything. Your joy, your finances, your sanity.</p>
+            <p><em>And then there are the ants...</em></p>
         `;
     }
     
@@ -1842,995 +1500,749 @@ function showCharacterSummary() {
 }
 
 // ========================================================================
-// MORNING ACTIVITIES
+// GAME START & MORNING ROUTINES
 // ========================================================================
 
-// Start the game proper
 function startGame() {
     if (domElements.narrativeText) {
         domElements.narrativeText.innerHTML = `
             <h2>Monday Morning</h2>
-            <p>You wake up in your home in ${gameState.location.name}. It's the start of another workweek in Lagos.</p>
-            <p>Grumbling generators and ever present horns in traffic remind you that the city never truly sleeps.</p>
-            <p>You check your phone: it's 6:00 AM. Time to start your day.</p>
+            <p>6:00 AM. Your alarm cuts through the darkness.</p>
+            <p>Outside, Lagos is already awake - the distant hum of generators, 
+            the call of a muezzin, the first honks of impatient drivers.</p>
+            <p>Another week begins.</p>
         `;
     }
     
     showMorningOptions();
 }
 
-// Show morning options
 function showMorningOptions() {
     if (domElements.choicesContainer) {
         domElements.choicesContainer.innerHTML = `
-            <h3>What would you like to do first?</h3>
-            <button class="choice-btn" onclick="prepareForWork()">Prepare for work</button>
-            <button class="choice-btn" onclick="checkPhone()">Check your phone</button>
-            <button class="choice-btn" onclick="goBackToSleep()">Try to get more sleep</button>
+            <h3>How do you start your day?</h3>
+            <button class="choice-btn" onclick="prepareForWork()">Get ready for work</button>
+            <button class="choice-btn" onclick="checkPhone()">Check your phone first</button>
+            <button class="choice-btn" onclick="goBackToSleep()">Snooze the alarm</button>
         `;
     }
 }
 
-// Function for morning activities
 function prepareForWork() {
     if (domElements.narrativeText) {
-        domElements.narrativeText.innerHTML += `<p>You get ready for the day ahead...</p>`;
+        domElements.narrativeText.innerHTML += `<p>You drag yourself out of bed and begin the morning ritual.</p>`;
     }
     
-    updateStat('fullness', -7);
-    updateUI();
+    updateStat('fullness', -5);
     showTransportationOptions();
 }
 
 function checkPhone() {
-    if (domElements.narrativeText) {
-        domElements.narrativeText.innerHTML += `<p>You check your phone for messages and news...</p>`;
-    }
-    
-    // Random news event
     const newsEvents = [
-        "The price of fuel has increased again. People are complaining on social media.",
-        "There's a traffic alert for your route to work. Might be best to leave early.",
-        "Rema released a new song overnight to rave reviews.",
-        "Your local DISCO announced more scheduled outages this week.",
-        "The naira has fallen again against the dollar. Prices may rise soon.",
-        "Your bank has sent a notification about new transaction fees.",
-        "A friend posted photos from a party you missed last weekend.",
-        "Your electricity provider has increased tariffs starting today."
+        "Twitter is ablaze with debates about the economy. Nothing new.",
+        "WhatsApp groups are already buzzing with forwards and memes.",
+        "Your data plan is dangerously low. You'll need to top up soon.",
+        "A friend posted pictures from a party you couldn't attend.",
+        "The naira fell again. Everything costs more now.",
+        "Someone is selling land on your timeline. Classic Lagos.",
+        "Your bank sent another promotion you'll never use.",
+        "Traffic alerts warn of unusual congestion. Unusual for Lagos means apocalyptic."
     ];
     
-    const randomNews = newsEvents[Math.floor(Math.random() * newsEvents.length)];
+    const news = newsEvents[Math.floor(Math.random() * newsEvents.length)];
     
-    if (domElements.narrativeText) {
-        domElements.narrativeText.innerHTML += `<p>Breaking news: ${randomNews}</p>`;
-    }
-    
-    // Social media can cause slight mood changes
-    if (Math.random() < 0.4) {
-        updateStat('joy', -2);
-        
+    if (Math.random() < 0.35) {
+        updateStat('joy', -3);
         if (domElements.narrativeText) {
-            domElements.narrativeText.innerHTML += `<p>Scrolling through social media leaves you feeling a bit down.</p>`;
+            domElements.narrativeText.innerHTML += `<p>You check your phone. ${news} You feel slightly worse.</p>`;
         }
     } else {
         updateStat('joy', 2);
-        
         if (domElements.narrativeText) {
-            domElements.narrativeText.innerHTML += `<p>You see a funny post that makes you smile.</p>`;
+            domElements.narrativeText.innerHTML += `<p>You check your phone. ${news} At least you're informed.</p>`;
         }
     }
     
-    setTimeout(() => prepareForWork(), 1500);
+    setTimeout(prepareForWork, 800);
 }
 
 function goBackToSleep() {
-    if (domElements.narrativeText) {
-        domElements.narrativeText.innerHTML += `<p>You decide to sleep a bit more...</p>`;
-    }
-    
-    updateStat('joy', 3);
-    updateStat('stress', -2);
-    
-    // Move time forward
+    updateStat('joy', 4);
+    updateStat('stress', -3);
     advanceTime(1, 'sleep');
     
-    // Now you're running late
     if (domElements.narrativeText) {
-        domElements.narrativeText.innerHTML += `<p>You've overslept! It's now 8:00 AM and you need to hurry.</p>`;
+        domElements.narrativeText.innerHTML += `
+            <p>You hit snooze and drift back to sleep. When you wake again, it's 8:00 AM.</p>
+            <p class="warning-text">You're running late!</p>
+        `;
     }
     
-    updateStat('stress', 15);
-    updateUI();
+    updateStat('stress', 12);
     showTransportationOptions();
 }
 
 // ========================================================================
-// TRANSPORTATION FUNCTIONS
+// TRANSPORTATION
 // ========================================================================
 
-// Show transportation options
 function showTransportationOptions() {
     if (!domElements.narrativeText || !domElements.choicesContainer) return;
     
-    domElements.narrativeText.innerHTML += `<p>You need to get to work. How will you travel today?</p>`;
+    domElements.narrativeText.innerHTML += `<p>Time to get to work. How are you getting there?</p>`;
     
-    let transportHTML = '<h3>Choose your transportation:</h3>';
+    let html = '<h3>Transportation</h3>';
     
     if (gameState.hasTransportation) {
-        const fuelCost = modifyCost(2000);
-        transportHTML += `<button class="choice-btn" onclick="useCar()">Drive your car (₦${fuelCost.toLocaleString()} for fuel)</button>`;
+        const fuelCost = modifyCost(2500);
+        html += `<button class="choice-btn" onclick="useCar()">Drive (₦${fuelCost.toLocaleString()} fuel)</button>`;
     }
     
-    const uberCost = modifyCost(7500);
-    const busCost = modifyCost(2000);
+    const uberCost = modifyCost(6500);
+    const busCost = modifyCost(1800);
     
-    transportHTML += `
-        <button class="choice-btn" onclick="useUber()">Take an Uber (₦${uberCost.toLocaleString()})</button>
+    html += `
+        <button class="choice-btn" onclick="useUber()">Call a ride (₦${uberCost.toLocaleString()})</button>
         <button class="choice-btn" onclick="takeBus()">Take a bus (₦${busCost.toLocaleString()})</button>
-        <button class="choice-btn" onclick="walkToWork()">Walk (free)</button>
+        <button class="choice-btn" onclick="walkToWork()">Walk (free, but risky)</button>
     `;
     
-    domElements.choicesContainer.innerHTML = transportHTML;
+    domElements.choicesContainer.innerHTML = html;
 }
 
-// Transportation functions
 function useCar() {
-    if (!domElements.narrativeText) return;
-    
-    const fuelCost = modifyCost(2000);
+    const fuelCost = modifyCost(2500);
     
     if (gameState.money < fuelCost) {
-        domElements.narrativeText.innerHTML += `<p>You don't have enough money for fuel.</p>`;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>You're low on fuel and can't afford more right now.</p>`;
+        }
         showTransportationOptions();
         return;
     }
     
-    domElements.narrativeText.innerHTML = `<p>You get into your car and start your commute...</p>`;
     updateStat('money', -fuelCost);
     
-    // Check for traffic
-    const isTraffic = Math.random() < 0.5;
-    if (isTraffic) {
-        domElements.narrativeText.innerHTML += `<p>Unfortunately, there's heavy traffic today.</p>`;
-        updateStat('stress', 15);
-        advanceTime(1.5, 'idle'); // Extra time in traffic
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `<p>You start the car and pull into Lagos traffic.</p>`;
+    }
+    
+    // Traffic check
+    if (Math.random() < 0.45) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>Traffic is brutal today. You inch forward, watching time slip away.</p>`;
+        }
+        updateStat('stress', 12);
+        advanceTime(1.5, 'idle');
     } else {
-        advanceTime(1, 'idle'); // Normal commute time
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>Traffic is manageable for once. Small victories.</p>`;
+        }
+        advanceTime(1, 'idle');
     }
     
     checkForPolice();
 }
 
 function useUber() {
-    if (!domElements.narrativeText) return;
+    const baseCost = modifyCost(6500);
     
-    const uberCost = modifyCost(7500);
-    
-    if (gameState.money < uberCost) {
-        domElements.narrativeText.innerHTML += `<p>You don't have enough money for an Uber.</p>`;
+    if (gameState.money < baseCost) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>You can't afford a ride right now.</p>`;
+        }
         showTransportationOptions();
         return;
     }
     
-    domElements.narrativeText.innerHTML = `<p>You call an Uber and wait for it to arrive...</p>`;
-    updateStat('money', -uberCost);
+    // Surge check
+    const isSurge = Math.random() < 0.35;
+    const finalCost = isSurge ? Math.round(baseCost * 1.8) : baseCost;
     
-    // Check for surge pricing
-    const isSurge = Math.random() < 0.4;
+    if (isSurge && gameState.money < finalCost) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>It's surge pricing (₦${finalCost.toLocaleString()}) and you can't afford it.</p>`;
+        }
+        showTransportationOptions();
+        return;
+    }
+    
+    updateStat('money', -finalCost);
+    
     if (isSurge) {
-        const surgeCost = modifyCost(18000);
-        if (gameState.money >= surgeCost) {
-            updateStat('money', -surgeCost);
-            updateStat('stress', 10);
-            domElements.narrativeText.innerHTML += `<p>Unfortunately, it's surge pricing! You're charged an additional ₦${surgeCost.toLocaleString()}.</p>`;
-        } else {
-            domElements.narrativeText.innerHTML += `<p>It's surge pricing and you can't afford the additional ₦${surgeCost.toLocaleString()}. The driver cancels.</p>`;
-            showTransportationOptions();
-            return;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `<p>Surge pricing. You wince as you confirm the ride (₦${finalCost.toLocaleString()}).</p>`;
+        }
+        updateStat('stress', 8);
+    } else {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `<p>You call a ride and wait for it to arrive.</p>`;
         }
     }
     
+    advanceTime(1, 'idle');
     checkForPolice();
 }
 
 function takeBus() {
-    if (!domElements.narrativeText || !domElements.choicesContainer) return;
-    
-    const busCost = modifyCost(2000);
+    const busCost = modifyCost(1800);
     
     if (gameState.money < busCost) {
-        domElements.narrativeText.innerHTML += `<p>You don't have enough money for the bus fare.</p>`;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>You can't even afford the bus fare.</p>`;
+        }
         showTransportationOptions();
         return;
     }
     
-    domElements.narrativeText.innerHTML = `<p>You head to the bus stop and wait for a bus...</p>`;
     updateStat('money', -busCost);
     
-    // Check for random events
-    const oneChanceBus = Math.random() < 0.1;
-    if (oneChanceBus) {
-        gameOver("You unfortunately entered 'one-chance'. Your journey ends here.");
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `<p>You head to the bus stop and wait with the morning crowd.</p>`;
+    }
+    
+    // REBALANCED: One-chance is very rare but still present
+    if (Math.random() < 0.03) {
+        gameOver("You got into a 'one-chance' vehicle. These criminals robbed you of everything and abandoned you far from home. Your week ends here.");
         return;
     }
     
-    const foundMoney = Math.random() < 0.4;
-    if (foundMoney) {
-        const foundAmount = 9000;
-        domElements.narrativeText.innerHTML += `<p>While waiting, you notice some money on the ground! It's ₦${foundAmount.toLocaleString()}!</p>`;
+    // Found money chance
+    if (Math.random() < 0.25) {
+        const foundAmount = Math.floor(Math.random() * 3000) + 1000;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>While waiting, you notice some money on the ground. ₦${foundAmount.toLocaleString()}.</p>`;
+        }
         
-        domElements.choicesContainer.innerHTML = `
-            <button class="choice-btn" onclick="pickUpMoney()">Pick up the money</button>
-            <button class="choice-btn" onclick="ignoreFoundMoney()">Ignore it</button>
-        `;
+        if (domElements.choicesContainer) {
+            domElements.choicesContainer.innerHTML = `
+                <button class="choice-btn" onclick="pickUpMoney(${foundAmount})">Pick it up</button>
+                <button class="choice-btn" onclick="ignoreFoundMoney()">Leave it alone</button>
+            `;
+        }
         return;
     }
     
-    // Chances of altercation on the bus
-    const hasAltercation = Math.random() < 0.2;
-    if (hasAltercation) {
-        domElements.narrativeText.innerHTML += `
-            <p>On the bus, an argument breaks out between the conductor and another passenger over change.</p>
-            <p>The situation is becoming heated...</p>
-        `;
+    // Bus altercation
+    if (Math.random() < 0.15) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>An argument erupts between the conductor and a passenger over change.</p>`;
+        }
         
-        domElements.choicesContainer.innerHTML = `
-            <button class="choice-btn" onclick="mediateArgument()">Try to mediate</button>
-            <button class="choice-btn" onclick="ignoreArgument()">Mind your own business</button>
-        `;
+        if (domElements.choicesContainer) {
+            domElements.choicesContainer.innerHTML = `
+                <button class="choice-btn" onclick="mediateArgument()">Try to help calm things</button>
+                <button class="choice-btn" onclick="ignoreArgument()">Mind your business</button>
+            `;
+        }
         return;
+    }
+    
+    advanceTime(1.5, 'idle');
+    arriveAtWork();
+}
+
+function pickUpMoney(amount) {
+    // REBALANCED: Much lower curse chance
+    if (Math.random() < 0.08) {
+        gameOver("As you reach for the money, something strange happens. Your limbs feel heavy, your vision blurs... You've been transformed. The juju is real. Your journey ends here.");
+        return;
+    }
+    
+    updateStat('money', amount);
+    updateStat('joy', 6);
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `<p>You pocket the money. Lucky day!</p>`;
+    }
+    
+    advanceTime(1.5, 'idle');
+    arriveAtWork();
+}
+
+function ignoreFoundMoney() {
+    updateStat('joy', 3);
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `<p>You leave the money where it is. Not worth the risk.</p>`;
+    }
+    
+    advanceTime(1.5, 'idle');
+    arriveAtWork();
+}
+
+function mediateArgument() {
+    if (Math.random() < 0.55) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>You calmly help resolve the situation. Both parties thank you.</p>`;
+        }
+        updateStat('joy', 8);
+        updateStat('stress', -3);
+    } else {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>Your intervention backfires. "Who invited you?" someone snaps. You retreat, embarrassed.</p>`;
+        }
+        updateStat('joy', -6);
+        updateStat('stress', 10);
+    }
+    
+    advanceTime(1.5, 'idle');
+    arriveAtWork();
+}
+
+function ignoreArgument() {
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML += `<p>You stay out of it. The argument eventually dies down on its own.</p>`;
+    }
+    
+    advanceTime(1.5, 'idle');
+    arriveAtWork();
+}
+
+function walkToWork() {
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `<p>You decide to walk. It's a long journey, but you'll save money.</p>`;
+    }
+    
+    updateStat('fullness', -12);
+    updateStat('stress', 8);
+    updateStat('joy', -3);
+    
+    if (gameState.rainedYesterday) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>Last night's rain has left puddles everywhere. The walk is miserable.</p>`;
+        }
+        updateStat('joy', -5);
+        
+        // Car splash
+        if (Math.random() < 0.6) {
+            if (domElements.narrativeText) {
+                domElements.narrativeText.innerHTML += `<p>A car speeds through a puddle, completely soaking you. The driver doesn't even slow down.</p>`;
+            }
+            updateStat('joy', -8);
+            updateStat('stress', 12);
+        }
+    }
+    
+    // REBALANCED: Robbery less common and less severe
+    if (Math.random() < 0.12) {
+        const stolenAmount = Math.round(gameState.money * 0.5);
+        
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>Someone bumps into you roughly. By the time you check, half your money is gone. A pickpocket.</p>`;
+        }
+        
+        updateStat('money', -stolenAmount);
+        updateStat('joy', -15);
+        updateStat('stress', 20);
+    }
+    
+    advanceTime(1.5, 'physical');
+    arriveAtWork();
+}
+
+function checkForPolice() {
+    if (Math.random() < 0.35) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>You're stopped at a checkpoint.</p>`;
+        }
+        
+        if (Math.random() < 0.45) {
+            const bribeCost = modifyCost(6000);
+            
+            if (domElements.narrativeText) {
+                domElements.narrativeText.innerHTML += `<p>The officer claims there's an "issue" with your papers. He suggests a "settlement."</p>`;
+            }
+            
+            if (domElements.choicesContainer) {
+                domElements.choicesContainer.innerHTML = `
+                    <button class="choice-btn" onclick="payBribe(${bribeCost})">Pay ₦${bribeCost.toLocaleString()}</button>
+                    <button class="choice-btn" onclick="refuseBribe()">Refuse and stand your ground</button>
+                `;
+            }
+            return;
+        } else {
+            if (domElements.narrativeText) {
+                domElements.narrativeText.innerHTML += `<p>They check your papers and wave you through. Relief.</p>`;
+            }
+        }
     }
     
     arriveAtWork();
 }
 
-function mediateArgument() {
-    if (!domElements.narrativeText) return;
-    
-    const isSuccessful = Math.random() < 0.6;
-    
-    if (isSuccessful) {
-        domElements.narrativeText.innerHTML += `<p>You calmly help resolve the situation. Both parties appreciate your intervention.</p>`;
-        updateStat('joy', 10);
-    } else {
-        domElements.narrativeText.innerHTML += `<p>Your attempt to help only makes things worse. The conductor slaps you and asks what gives you the right to play mediator. You no be Jesus, so mind your business.</p>`;
-        updateStat('stress', 15);
-        updateStat('joy', -10);
-    }
-    
-    setTimeout(() => arriveAtWork(), 1500);
-}
-
-function ignoreArgument() {
-    if (!domElements.narrativeText) return;
-    
-    domElements.narrativeText.innerHTML += `<p>You decide not to get involved. The argument eventually dies down on its own.</p>`;
-    setTimeout(() => arriveAtWork(), 1500);
-}
-
-function pickUpMoney() {
-    if (!domElements.narrativeText) return;
-    
-    const foundAmount = 9000;
-    const turnIntoYam = Math.random() < 0.6;
-    if (turnIntoYam) {
-        gameOver("As you pick up the money, you suddenly feel a strange sensation. You are now a tuber of yam. Your adventure ends here as you realize some money is not meant to be picked up.");
-        return;
-    }
-    
-    updateStat('money', foundAmount);
-    updateStat('joy', 10);
-    domElements.narrativeText.innerHTML = `<p>You pick up the money and put it in your pocket. Nice!</p>`;
-    
-    setTimeout(() => arriveAtWork(), 1500);
-}
-
-function ignoreFoundMoney() {
-    if (!domElements.narrativeText) return;
-    
-    domElements.narrativeText.innerHTML = `<p>You decide not to take the money. It could be a trap or belong to someone who really needs it.</p>`;
-    updateStat('joy', 5); // Small joy boost for doing the "right thing"
-    
-    setTimeout(() => arriveAtWork(), 1500);
-}
-
-function walkToWork() {
-    if (!domElements.narrativeText) return;
-    
-    domElements.narrativeText.innerHTML = `<p>You decide to walk to work to save money...</p>`;
-    
-    updateStat('fullness', -15);
-    updateStat('stress', 10);
-    updateStat('joy', -5);
-    
-    // Check if it rained last night
-    if (gameState.rainedYesterday) {
-        domElements.narrativeText.innerHTML += `<p>It rained last night, making the walk more difficult.</p>`;
-        updateStat('joy', -5);
-        
-        // Check if you get splashed by a car
-        const getSplashed = Math.random() < 0.9;
-        if (getSplashed) {
-            domElements.narrativeText.innerHTML += `<p>As you're walking, a car speeds through a puddle, completely soaking you!</p>`;
-            updateStat('joy', -10);
-            updateStat('stress', 15);
-        }
-    }
-    
-    // Check for robbery
-    const getRobbed = Math.random() < 0.2;
-    if (getRobbed) {
-        domElements.narrativeText.innerHTML += `<p>Suddenly, you're confronted by thieves demanding your money and phone!</p>`;
-        
-        // Take most but not all money
-        const stolenAmount = Math.round(gameState.money * 0.85);
-        updateStat('money', -stolenAmount);
-        updateStat('joy', -25);
-        updateStat('stress', 30);
-        
-        // Check for deadly outcome
-        const getKilled = Math.random() < 0.08;
-        if (getKilled) {
-            gameOver("The thieves become violent. Unfortunately, you don't survive the encounter. Your journey ends here.");
-            return;
-        }
-        
-        domElements.narrativeText.innerHTML += `<p>They take most of your money and leave you shaken but alive.</p>`;
-    }
-    
-    advanceTime(1, 'physical');
-    setTimeout(() => arriveAtWork(), 1500);
-}
-
-function checkForPolice() {
-    if (!domElements.narrativeText || !domElements.choicesContainer) return;
-    
-    // 40% chance of being stopped by police
-    const stoppedByPolice = Math.random() < 0.4;
-    
-    if (stoppedByPolice) {
-        domElements.narrativeText.innerHTML += `<p>You're stopped by police at a checkpoint...</p>`;
-        
-        // 50% chance they ask for a bribe
-        const askForBribe = Math.random() < 0.5;
-        
-        if (askForBribe) {
-            const bribeCost = modifyCost(9000);
-            domElements.narrativeText.innerHTML += `<p>The officer claims there's an issue with your papers and suggests a "settlement" of ₦${bribeCost.toLocaleString()}.</p>`;
-            
-            domElements.choicesContainer.innerHTML = `
-                <button class="choice-btn" onclick="payBribe(${bribeCost})">Pay the bribe (₦${bribeCost.toLocaleString()})</button>
-                <button class="choice-btn" onclick="refuseBribe()">Refuse to pay</button>
-            `;
-            return;
-        } else {
-            domElements.narrativeText.innerHTML += `<p>After checking your papers, the officer lets you go.</p>`;
-            setTimeout(() => arriveAtWork(), 1500);
-        }
-    } else {
-        setTimeout(() => arriveAtWork(), 1500);
-    }
-}
-
 function payBribe(amount) {
-    if (!domElements.narrativeText) return;
-    
     if (gameState.money < amount) {
-        // Can't afford the bribe
-        domElements.narrativeText.innerHTML += `<p>You don't have enough money for the bribe.</p>`;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>"I don't have that much," you explain truthfully.</p>`;
+        }
         refuseBribe();
         return;
     }
     
     updateStat('money', -amount);
-    updateStat('stress', 12);
-    updateStat('joy', -8);
+    updateStat('stress', 10);
+    updateStat('joy', -5);
     
-    domElements.narrativeText.innerHTML += `<p>You reluctantly pay the bribe and are allowed to continue on your way.</p>`;
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `<p>You hand over the money. The officer pockets it and waves you through. This is Lagos.</p>`;
+    }
     
-    updateUI();
-    setTimeout(() => arriveAtWork(), 1500);
+    arriveAtWork();
 }
 
 function refuseBribe() {
-    if (!domElements.narrativeText) return;
-    
-    domElements.narrativeText.innerHTML += `<p>You refuse to pay the bribe, insisting you've done nothing wrong.</p>`;
-    
-    // 30% chance of being detained
-    const getDetained = Math.random() < 0.3;
-    
-    if (getDetained) {
-        gameOver("The officer becomes angry and detains you. You spend the rest of the day at the police station, missing work. Your boss fires you for not showing up. Game over.");
+    if (Math.random() < 0.25) {
+        gameOver("The officer doesn't take kindly to your refusal. You spend the rest of the day at the station. Your boss fires you for not showing up.");
         return;
     }
     
-    domElements.narrativeText.innerHTML += `<p>After a tense standoff, the officer lets you go, but not before confiscating some of the money in your wallet.</p>`;
+    const confiscated = Math.min(gameState.money, 8000);
+    updateStat('money', -confiscated);
+    updateStat('stress', 18);
     
-    // Take a portion of money, not all
-    const confiscatedAmount = Math.min(gameState.money, 12000);
-    updateStat('money', -confiscatedAmount);
-    updateStat('stress', 25);
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `<p>After a tense standoff, they let you go but somehow your wallet is lighter. You're too rattled to argue.</p>`;
+    }
     
-    updateUI();
-    setTimeout(() => arriveAtWork(), 1500);
+    arriveAtWork();
 }
 
 function arriveAtWork() {
-    if (!domElements.narrativeText || !domElements.choicesContainer) return;
+    advanceTime(0.5, 'idle');
     
-    advanceTime(1, 'idle'); // 2 hours for commute
-    
-    // Random event: key holder not at work
-    const keyHolderMissing = Math.random() < 0.2;
-    
-    if (keyHolderMissing) {
-        domElements.narrativeText.innerHTML = `
-            <h2>Arrival at Work</h2>
-            <p>You arrive at work, but the person with the key isn't there yet! Everyone is waiting outside.</p>
-        `;
+    // Key holder missing
+    if (Math.random() < 0.15) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>At the Office</h2>
+                <p>You arrive to find everyone waiting outside. The person with the office key isn't here yet.</p>
+            `;
+        }
         
-        updateStat('stress', 10);
+        updateStat('stress', 8);
         
-        domElements.choicesContainer.innerHTML = `
-            <button class="choice-btn" onclick="waitForKey()">Wait patiently</button>
-            <button class="choice-btn" onclick="callKeyHolder()">Call the key holder</button>
-            <button class="choice-btn" onclick="goGetBreakfast()">Go get breakfast while waiting</button>
-        `;
-    } else {
-        domElements.narrativeText.innerHTML = `
-            <h2>Arrival at Work</h2>
-            <p>You arrive at work and settle in for the day.</p>
-        `;
-        
-        startWorkDay();
+        if (domElements.choicesContainer) {
+            const breakfastCost = modifyCost(3500);
+            domElements.choicesContainer.innerHTML = `
+                <button class="choice-btn" onclick="waitForKey()">Wait patiently</button>
+                <button class="choice-btn" onclick="callKeyHolder()">Call the key holder</button>
+                <button class="choice-btn" onclick="goGetBreakfast(${breakfastCost})">Get breakfast while waiting (₦${breakfastCost.toLocaleString()})</button>
+            `;
+        }
+        return;
     }
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <h2>At the Office</h2>
+            <p>You settle into your desk and prepare for the day ahead.</p>
+        `;
+    }
+    
+    startWorkDay();
 }
 
-// Key holder missing options
 function waitForKey() {
-    if (!domElements.narrativeText) return;
-    
-    domElements.narrativeText.innerHTML += `<p>You decide to wait patiently. After an hour, the key holder finally arrives.</p>`;
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML += `<p>You wait. And wait. Eventually, they arrive and everyone files in.</p>`;
+    }
     updateStat('stress', 5);
     updateStat('fullness', -5);
-    advanceTime(0.5, 'idle'); // Half a time slot (1 hour)
-    
+    advanceTime(0.5, 'idle');
     startWorkDay();
 }
 
 function callKeyHolder() {
-    if (!domElements.narrativeText) return;
-    
-    domElements.narrativeText.innerHTML += `<p>You call the key holder, who apologizes and says they're stuck in traffic but will be there soon.</p>`;
-    
-    // 50% chance they come quickly due to your call
-    const comeQuickly = Math.random() < 0.5;
-    
-    if (comeQuickly) {
-        domElements.narrativeText.innerHTML += `<p>Your call seems to have motivated them - they arrive just 30 minutes later.</p>`;
-        advanceTime(0.25, 'idle'); // Quarter of a time slot
+    if (Math.random() < 0.5) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>Your call lights a fire under them. They arrive soon after.</p>`;
+        }
+        advanceTime(0.25, 'idle');
     } else {
-        domElements.narrativeText.innerHTML += `<p>Despite your call, they still take over an hour to arrive.</p>`;
-        advanceTime(0.5, 'idle'); // Half a time slot
-        updateStat('stress', 8);
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>They apologize profusely but still take forever to arrive.</p>`;
+        }
+        advanceTime(0.5, 'idle');
+        updateStat('stress', 6);
     }
-    
     startWorkDay();
 }
 
-function goGetBreakfast() {
-    if (!domElements.narrativeText) return;
-    
-    const breakfastCost = modifyCost(4000);
-    
-    if (gameState.money < breakfastCost) {
-        domElements.narrativeText.innerHTML += `<p>You don't have enough money for breakfast.</p>`;
+function goGetBreakfast(cost) {
+    if (gameState.money < cost) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>You can't afford breakfast right now.</p>`;
+        }
         waitForKey();
         return;
     }
     
-    domElements.narrativeText.innerHTML += `<p>You decide to make use of the time by getting breakfast at a nearby food vendor.</p>`;
-    
-    updateStat('money', -breakfastCost);
-    updateStat('fullness', 30);
+    updateStat('money', -cost);
+    updateStat('fullness', 25);
     updateStat('joy', 5);
+    gameState.mealsToday++;
     gameState.lastMealTime = gameState.time;
     
-    // Check for roadside food vendor availability
-    const vendorAvailable = Math.random() > 0.17; // 17% chance the vendor isn't there
-    
-    if (!vendorAvailable) {
-        domElements.narrativeText.innerHTML += `<p>Unfortunately, the usual food vendor isn't there today. You have to find another place to eat, which takes more time.</p>`;
-        advanceTime(0.75, 'idle');
-    } else {
-        // Schedule possible sickness (60% chance of getting sick in 2 days)
-        if (Math.random() < 0.6) {
-            scheduleSickness();
-        }
-        
-        // Give extra food if from roadside (good thing)
-        const getExtraFood = Math.random() < 0.5;
-        if (getExtraFood) {
-            domElements.narrativeText.innerHTML += `<p>The food vendor gives you extra! "For my loyal customer," she says with a smile.</p>`;
-            updateStat('fullness', 10);
-            updateStat('joy', 5);
-        }
-        
-        advanceTime(0.5, 'idle');
+    // Small chance of food poisoning from roadside
+    const food = FOOD_OPTIONS.filter(f => f.location === 'roadside')[Math.floor(Math.random() * 3)];
+    if (Math.random() < (food.sickChance || 0.1)) {
+        gameState.isSick = true;
+        gameState.sicknessType = 'food';
     }
     
-    const keyHolderArrives = Math.random() < 0.5;
-    
-    if (keyHolderArrives) {
-        domElements.narrativeText.innerHTML += `<p>When you return, you find that the key holder has arrived and everyone is already inside.</p>`;
-    } else {
-        domElements.narrativeText.innerHTML += `<p>You return just as the key holder arrives. Perfect timing!</p>`;
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML += `<p>You grab some ${food.name} while waiting. When you return, the office is open.</p>`;
     }
     
+    advanceTime(0.5, 'idle');
     startWorkDay();
 }
 
 // ========================================================================
-// WORK DAY FUNCTIONS
+// WORK DAY
 // ========================================================================
 
-// Work day
 function startWorkDay() {
-    if (!domElements.narrativeText) return;
-    
     gameState.isWorking = true;
-    gameState.workdayStage = 1; // Start with morning tasks
+    gameState.workdayStage = 1;
     
-    // Tuesday always gets an impossible deadline
     if (gameState.day === 1 && gameState.time <= 2) {
-        domElements.narrativeText.innerHTML = `
-            <h2>Tuesday Work Challenge</h2>
-            <p>Your boss calls you into their office and assigns you an almost impossible project due Friday.</p>
-            <p>"I need this finished by Friday or there will be consequences," they say firmly.</p>
-        `;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>The Impossible Deadline</h2>
+                <p>Your boss calls you into their office. Their expression is grim.</p>
+                <p>"I need this project completed by Friday. No excuses."</p>
+                <p>You know it's nearly impossible. But you also know you have no choice.</p>
+            `;
+        }
         
-        updateStat('stress', 25);
-        gameState.deadline = 100; // Amount of work needed
+        updateStat('stress', 20);
+        gameState.deadline = 100;
     } else {
-        domElements.narrativeText.innerHTML = `
-            <h2>At Work</h2>
-            <p>You settle in at your desk and check your tasks for the day.</p>
-        `;
-        
-        // Random chance of boss suggesting promotion (good thing)
-        const promotionHint = Math.random() < 0.04;
-        if (promotionHint) {
-            domElements.narrativeText.innerHTML += `<p>Your boss stops by your desk. "Keep up the good work," they say. "We'll be discussing promotions soon, and I've been impressed with your performance."</p>`;
-            updateStat('joy', 15);
-            updateStat('stress', -8);
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>Work Day</h2>
+                <p>Time to earn your keep.</p>
+            `;
         }
     }
     
     showWorkStageOptions();
 }
 
-// Show work options based on workday stage
 function showWorkStageOptions() {
     if (!domElements.narrativeText || !domElements.choicesContainer) return;
     
-    let stageText;
-    let timeAdvance;
+    const stages = {
+        1: { name: "Morning (8:00 AM - 12:00 PM)", time: 2 },
+        2: { name: "Midday (12:00 PM - 2:00 PM)", time: 1 },
+        3: { name: "Afternoon (2:00 PM - 5:00 PM)", time: 1.5 }
+    };
     
-    switch(gameState.workdayStage) {
-        case 1: // Morning
-            stageText = "Morning Tasks (8:00 AM - 12:00 PM)";
-            timeAdvance = 2; // 4 hours
-            break;
-        case 2: // Midday
-            stageText = "Midday Tasks (12:00 PM - 2:00 PM)";
-            timeAdvance = 1; // 2 hours
-            break;
-        case 3: // Afternoon
-            stageText = "Afternoon Tasks (2:00 PM - 5:00 PM)";
-            timeAdvance = 1.5; // 3 hours
-            break;
-        default:
-            // Fallback for any unexpected stages
-            stageText = "Work Tasks";
-            timeAdvance = 1.5;
-            gameState.workdayStage = 1; // Reset to morning
-            break;
-    }
+    const current = stages[gameState.workdayStage] || stages[1];
     
-    domElements.narrativeText.innerHTML = `
-        <h2>Work Day: ${stageText}</h2>
-        <p>Select how you want to use this part of your workday:</p>
-    `;
+    domElements.narrativeText.innerHTML = `<h2>Work: ${current.name}</h2>`;
+    gameState.currentWorkTimeAdvance = current.time;
     
-    // Different options based on job
-    let workHTML = '<h3>How will you approach this work period?</h3>';
+    let workOptions = '';
     
     switch(gameState.job) {
         case 'marketer':
-            workHTML += `
-                <button class="choice-btn" onclick="doWorkTask('client')">Visit potential clients</button>
-                <button class="choice-btn" onclick="doWorkTask('pitch')">Work on pitch materials</button>
+            workOptions = `
+                <button class="choice-btn" onclick="doWorkTask('client')">Visit clients</button>
+                <button class="choice-btn" onclick="doWorkTask('pitch')">Work on presentations</button>
                 <button class="choice-btn" onclick="doWorkTask('research')">Research market trends</button>
             `;
             break;
         case 'programmer':
-            workHTML += `
-                <button class="choice-btn" onclick="doWorkTask('debug')">Debug code issues</button>
-                <button class="choice-btn" onclick="doWorkTask('feature')">Implement new features</button>
-                <button class="choice-btn" onclick="doWorkTask('optimize')">Optimize existing code</button>
+            workOptions = `
+                <button class="choice-btn" onclick="doWorkTask('debug')">Fix bugs</button>
+                <button class="choice-btn" onclick="doWorkTask('feature')">Build new features</button>
+                <button class="choice-btn" onclick="doWorkTask('optimize')">Optimize code</button>
             `;
             break;
         case 'designer':
-            workHTML += `
+            workOptions = `
                 <button class="choice-btn" onclick="doWorkTask('create')">Create new designs</button>
-                <button class="choice-btn" onclick="doWorkTask('revise')">Revise client work</button>
-                <button class="choice-btn" onclick="doWorkTask('mockup')">Develop mockups</button>
+                <button class="choice-btn" onclick="doWorkTask('revise')">Handle revisions</button>
+                <button class="choice-btn" onclick="doWorkTask('mockup')">Build mockups</button>
             `;
             break;
         case 'artist':
-            workHTML += `
-                <button class="choice-btn" onclick="doWorkTask('paint')">Work on paintings</button>
-                <button class="choice-btn" onclick="doWorkTask('commission')">Complete a commission</button>
+            workOptions = `
+                <button class="choice-btn" onclick="doWorkTask('paint')">Work on personal pieces</button>
+                <button class="choice-btn" onclick="doWorkTask('commission')">Complete commissions</button>
                 <button class="choice-btn" onclick="doWorkTask('exhibit')">Prepare for exhibition</button>
             `;
             break;
     }
     
-    // Add break options
-    workHTML += `
-        <button class="choice-btn" onclick="takeBreak()">Take a short break</button>
-        <button class="choice-btn" onclick="eatLunch()">Go for lunch</button>
-        <button class="choice-btn status-check" onclick="checkStatus()">Check status and progress</button>
-    `;
-    
-    domElements.choicesContainer.innerHTML = workHTML;
-    
-    // Store the time advance for this stage
-    gameState.currentWorkTimeAdvance = timeAdvance;
-}
-
-// Status check function
-function checkStatus() {
-    if (!domElements.narrativeText || !domElements.choicesContainer) return;
-    
-    let statusHTML = `<h2>Current Status</h2>`;
-    
-    // Basic stats
-    statusHTML += `
-        <div class="status-section">
-            <h3>Personal Wellbeing</h3>
-            <p>Joy: ${Math.round(gameState.joy)}/100 - ${gameState.joy > 70 ? "You're feeling good" : gameState.joy > 40 ? "You're feeling okay" : "You're feeling down"}</p>
-            <p>Stress: ${Math.round(gameState.stress)}/100 - ${gameState.stress < 30 ? "You're relaxed" : gameState.stress < 60 ? "You're managing" : "You're very stressed"}</p>
-            <p>Fullness: ${Math.round(gameState.fullness)}/100 - ${gameState.fullness > 70 ? "You're well-fed" : gameState.fullness > 40 ? "You could use a meal soon" : "You're hungry"}</p>
-        </div>
-    `;
-    
-    // Work progress
-    statusHTML += `
-        <div class="status-section">
-            <h3>Work Progress</h3>
-            <p>General productivity: ${Math.round(gameState.workProgress)}/100</p>
-    `;
-    
-    // Add deadline info if active
-    if (gameState.deadline > 0) {
-        const progress = Math.round((gameState.deadlineProgress / gameState.deadline) * 100);
-        const daysLeft = 5 - gameState.day; // Friday is day 4
-        
-        statusHTML += `
-            <p>Deadline project: ${progress}% complete</p>
-            <p>Time remaining: ${daysLeft} day${daysLeft !== 1 ? 's' : ''}</p>
-            <p class="${progress < (100 - daysLeft * 20) ? 'warning-text' : ''}">
-                Status: ${
-                    progress >= 90 ? "Nearly complete" :
-                    progress >= 75 ? "Good progress" :
-                    progress >= 50 ? "Halfway there" :
-                    progress >= 25 ? "Just getting started" :
-                    "Minimal progress"
-                }
-            </p>
-        `;
-    }
-    
-    statusHTML += `</div>`;
-    
-    // Financial status
-    statusHTML += `
-        <div class="status-section">
-            <h3>Financial Status</h3>
-            <p>Current money: ₦${gameState.money.toLocaleString()}</p>
-            <p>Estimated daily expenses: ₦${estimateDailyExpenses().toLocaleString()}</p>
-        </div>
-    `;
-    
-    // Social/personal status
-    statusHTML += `
-        <div class="status-section">
-            <h3>Personal</h3>
-            <p>Job: ${gameState.job.charAt(0).toUpperCase() + gameState.job.slice(1)} at ${gameState.companyName}</p>
-            <p>Living in: ${gameState.location.name}, ${gameState.location.area}</p>
-            ${gameState.hasTransportation ? "<p>You own a car for transportation.</p>" : "<p>You rely on public transportation.</p>"}
-        </div>
-    `;
-    
-    // Show in a modal-like display
-    domElements.narrativeText.innerHTML = statusHTML;
-    
-    // Return button
     domElements.choicesContainer.innerHTML = `
-        <button class="choice-btn" onclick="showWorkStageOptions()">Return to work</button>
+        <h3>What do you focus on?</h3>
+        ${workOptions}
+        <button class="choice-btn" onclick="takeBreak()">Take a break</button>
+        <button class="choice-btn" onclick="eatLunch()">Get food</button>
+        <button class="choice-btn status-check" onclick="checkStatus()">Check your status</button>
     `;
 }
 
-// Helper function to estimate daily expenses
-function estimateDailyExpenses() {
-    let estimate = 0;
-    
-    // Transportation (average)
-    estimate += gameState.hasTransportation ? 2000 : 6000;
-    
-    // Food (average)
-    estimate += 10000;
-    
-    // Other (random expenses)
-    estimate += 5000;
-    
-    return modifyCost(estimate);
-}
-
-// Do a work task
 function doWorkTask(taskType) {
-    if (!domElements.narrativeText) return;
-    
-    // General work progress
     let progressGain = 0;
     let stressChange = 0;
     let joyChange = 0;
     let taskDesc = "";
     
-    // Base chance of success - lower when stats are bad
-    let successModifier = 1.0;
-    if (gameState.fullness < 30) successModifier *= 0.7;
-    if (gameState.joy < 30) successModifier *= 0.8;
-    if (gameState.stress > 70) successModifier *= 0.75;
+    // Success modifier based on current state
+    let successMod = 1.0;
+    if (gameState.fullness < 35) successMod *= 0.75;
+    if (gameState.joy < 35) successMod *= 0.8;
+    if (gameState.stress > 65) successMod *= 0.8;
     
-    // Task-specific outcomes with more variance and risk
-    switch(gameState.job) {
-        case 'marketer':
-            if (taskType === 'client') {
-                taskDesc = "You visit potential clients to pitch your company's services.";
-                const clientMeeting = Math.random() * successModifier;
-                
-                if (clientMeeting > 0.7) {
-                    taskDesc += " The meeting goes exceptionally well! The client is eager to work with your company.";
-                    progressGain = 30;
-                    stressChange = -5;
-                    joyChange = 12;
-                } else if (clientMeeting > 0.3) {
-                    taskDesc += " The client seems interested but non-committal.";
-                    progressGain = 15;
-                    stressChange = 5;
-                    joyChange = 0;
-                } else {
-                    taskDesc += " Unfortunately, the client is not interested at all and the meeting is quite unpleasant.";
-                    progressGain = 5;
-                    stressChange = 15;
-                    joyChange = -10;
-                }
-            } else if (taskType === 'pitch') {
-                taskDesc = "You work on developing pitch materials for future clients.";
-                progressGain = 20;
-                stressChange = 10;
-                joyChange = -5;
-            } else if (taskType === 'research') {
-                taskDesc = "You research market trends to refine your strategy.";
-                progressGain = 12;
-                stressChange = 5;
-                joyChange = 0;
-            }
-            break;
-            
-        case 'programmer':
-            if (taskType === 'debug') {
-                taskDesc = "You hunt down bugs in the codebase.";
-                const debugSuccess = Math.random() * successModifier;
-                
-                if (debugSuccess > 0.6) {
-                    taskDesc += " You fix a critical bug that's been causing problems! Your colleagues are impressed.";
-                    progressGain = 30;
-                    stressChange = -8;
-                    joyChange = 15;
-                } else if (debugSuccess > 0.2) {
-                    taskDesc += " You make some progress, but the root cause remains elusive.";
-                    progressGain = 12;
-                    stressChange = 10;
-                    joyChange = -5;
-                } else {
-                    taskDesc += " The bugs seem to multiply as you fix them. It's a complete nightmare.";
-                    progressGain = 3;
-                    stressChange = 20;
-                    joyChange = -15;
-                }
-            } else if (taskType === 'feature') {
-                taskDesc = "You work on implementing new features.";
-                progressGain = 20;
-                stressChange = 15;
-                joyChange = 3;
-            } else if (taskType === 'optimize') {
-                taskDesc = "You focus on optimizing existing code for better performance.";
-                progressGain = 16;
-                stressChange = 8;
-                joyChange = 0;
-            }
-            break;
-            
-        case 'designer':
-            if (taskType === 'create') {
-                taskDesc = "You work on creating new designs from scratch.";
-                const creativeSuccess = Math.random() * successModifier;
-                
-                if (creativeSuccess > 0.7) {
-                    taskDesc += " Inspiration strikes and your designs flow effortlessly! You create something truly innovative.";
-                    progressGain = 30;
-                    stressChange = -10;
-                    joyChange = 18;
-                } else if (creativeSuccess > 0.3) {
-                    taskDesc += " You create some decent designs, though nothing groundbreaking.";
-                    progressGain = 16;
-                    stressChange = 5;
-                    joyChange = 3;
-                } else {
-                    taskDesc += " Designer's block hits hard. Nothing seems to work today and the pressure is mounting.";
-                    progressGain = 3;
-                    stressChange = 15;
-                    joyChange = -12;
-                }
-            } else if (taskType === 'revise') {
-                taskDesc = "You revise designs based on client feedback.";
-                progressGain = 20;
-                stressChange = 12;
-                joyChange = -5;
-            } else if (taskType === 'mockup') {
-                taskDesc = "You develop mockups for upcoming projects.";
-                progressGain = 16;
-                stressChange = 8;
-                joyChange = 0;
-            }
-            break;
-            
-        case 'artist':
-            if (taskType === 'paint') {
-                taskDesc = "You work on your personal art pieces.";
-                const artisticFlow = Math.random() * successModifier;
-                
-                if (artisticFlow > 0.6) {
-                    taskDesc += " You enter a state of flow and create something truly beautiful! The hours fly by effortlessly.";
-                    progressGain = 18;
-                    stressChange = -15;
-                    joyChange = 25;
-                } else if (artisticFlow > 0.2) {
-                    taskDesc += " The work progresses steadily, if not spectacularly.";
-                    progressGain = 12;
-                    stressChange = 0;
-                    joyChange = 8;
-                } else {
-                    taskDesc += " Your vision exceeds your current abilities, leading to intense frustration.";
-                    progressGain = 3;
-                    stressChange = 12;
-                    joyChange = -8;
-                }
-            } else if (taskType === 'commission') {
-                taskDesc = "You work on a commissioned piece for a client.";
-                progressGain = 20;
-                stressChange = 15;
-                joyChange = 3;
-            } else if (taskType === 'exhibit') {
-                taskDesc = "You prepare pieces for an upcoming exhibition.";
-                progressGain = 25;
-                stressChange = 18;
-                joyChange = 5;
-            }
-            break;
-    }
+    const roll = Math.random() * successMod;
     
-    // Apply class-based modifiers
-    if (gameState.class) {
-        const mod = CLASS_MODIFIERS[gameState.class];
-        stressChange *= mod.stressFromWork;
-        
-        // Only modify positive joy (joy from leisure)
-        if (joyChange > 0) {
-            joyChange *= mod.joyFromLeisure;
+    // Task outcomes by job
+    const outcomes = {
+        'marketer': {
+            'client': {
+                high: { desc: "The client meeting goes brilliantly. They're excited to work with you.", progress: 28, stress: -5, joy: 12 },
+                mid: { desc: "The client seems interested but wants to think about it.", progress: 15, stress: 5, joy: 0 },
+                low: { desc: "The client isn't receptive. Another wasted trip.", progress: 5, stress: 12, joy: -8 }
+            },
+            'pitch': {
+                high: { desc: "Your presentation comes together beautifully.", progress: 22, stress: -3, joy: 8 },
+                mid: { desc: "Decent progress on the pitch deck.", progress: 18, stress: 8, joy: 0 },
+                low: { desc: "Writer's block. The slides just won't cooperate.", progress: 8, stress: 12, joy: -5 }
+            },
+            'research': {
+                high: { desc: "You find some valuable market insights.", progress: 18, stress: 0, joy: 6 },
+                mid: { desc: "Standard research day. Nothing exciting.", progress: 14, stress: 5, joy: 0 },
+                low: { desc: "The data doesn't make sense. Frustrating.", progress: 8, stress: 10, joy: -4 }
+            }
+        },
+        'programmer': {
+            'debug': {
+                high: { desc: "You finally track down that bug that's been haunting the codebase. Victory!", progress: 30, stress: -8, joy: 15 },
+                mid: { desc: "Some progress on debugging. The issues are complex.", progress: 14, stress: 10, joy: -3 },
+                low: { desc: "The bugs multiply as you fix them. It's a nightmare.", progress: 5, stress: 18, joy: -12 }
+            },
+            'feature': {
+                high: { desc: "The new feature comes together smoothly. Your code is elegant.", progress: 25, stress: -2, joy: 10 },
+                mid: { desc: "Steady progress on the feature.", progress: 18, stress: 12, joy: 2 },
+                low: { desc: "Technical debt catches up with you. Progress stalls.", progress: 8, stress: 15, joy: -8 }
+            },
+            'optimize': {
+                high: { desc: "Your optimization cuts load time by 40%. Impressive.", progress: 20, stress: -5, joy: 10 },
+                mid: { desc: "Small performance gains. Every bit helps.", progress: 15, stress: 6, joy: 2 },
+                low: { desc: "The optimization breaks something else. Back to square one.", progress: 5, stress: 14, joy: -8 }
+            }
+        },
+        'designer': {
+            'create': {
+                high: { desc: "Inspiration strikes! Your designs flow effortlessly.", progress: 28, stress: -10, joy: 18 },
+                mid: { desc: "Decent designs. Not your best work, but solid.", progress: 16, stress: 5, joy: 3 },
+                low: { desc: "Designer's block. Everything you create looks wrong.", progress: 5, stress: 12, joy: -10 }
+            },
+            'revise': {
+                high: { desc: "The client loves your revisions. Finally!", progress: 22, stress: -5, joy: 10 },
+                mid: { desc: "Standard revisions. The client is satisfied enough.", progress: 18, stress: 10, joy: -2 },
+                low: { desc: "More revisions requested. \"Can you make the logo bigger?\"", progress: 10, stress: 16, joy: -10 }
+            },
+            'mockup': {
+                high: { desc: "Your mockups impress the team.", progress: 20, stress: -3, joy: 8 },
+                mid: { desc: "Mockups coming along steadily.", progress: 16, stress: 6, joy: 2 },
+                low: { desc: "The mockups don't capture the vision. More work needed.", progress: 8, stress: 10, joy: -5 }
+            }
+        },
+        'artist': {
+            'paint': {
+                high: { desc: "You enter a flow state. Hours disappear as you create something beautiful.", progress: 18, stress: -15, joy: 25 },
+                mid: { desc: "Steady work on your art. Progress feels good.", progress: 14, stress: 0, joy: 8 },
+                low: { desc: "Your vision exceeds your execution. Frustration sets in.", progress: 5, stress: 10, joy: -6 }
+            },
+            'commission': {
+                high: { desc: "The commission comes together perfectly. The client will love it.", progress: 25, stress: -5, joy: 12 },
+                mid: { desc: "Progress on the commission. It's coming along.", progress: 18, stress: 8, joy: 3 },
+                low: { desc: "The client's requirements don't match your style. Struggling.", progress: 10, stress: 14, joy: -8 }
+            },
+            'exhibit': {
+                high: { desc: "Your exhibition pieces are stunning. You feel proud.", progress: 22, stress: -8, joy: 15 },
+                mid: { desc: "Preparing pieces for the exhibition. Steady progress.", progress: 18, stress: 10, joy: 5 },
+                low: { desc: "Nothing feels exhibition-worthy. Self-doubt creeps in.", progress: 8, stress: 12, joy: -10 }
+            }
         }
+    };
+    
+    const task = outcomes[gameState.job][taskType];
+    let result;
+    
+    if (roll > 0.65) {
+        result = task.high;
+    } else if (roll > 0.25) {
+        result = task.mid;
+    } else {
+        result = task.low;
     }
     
-    // Hunger affects work performance
-    if (gameState.fullness < 30) {
-        progressGain *= 0.7; // 30% less productive when hungry
-        stressChange *= 1.3; // 30% more stress when hungry
+    taskDesc = result.desc;
+    progressGain = result.progress;
+    stressChange = result.stress;
+    joyChange = result.joy;
+    
+    // Apply class modifiers
+    if (gameState.class) {
+        stressChange *= CLASS_MODIFIERS[gameState.class].stressFromWork;
+        if (joyChange > 0) joyChange *= CLASS_MODIFIERS[gameState.class].joyFromLeisure;
     }
     
-    // If Tuesday's deadline is active, advance that too
+    // Deadline progress
     if (gameState.deadline > 0) {
-        // Progress on deadline
-        gameState.deadlineProgress += progressGain * 0.7;
-        
-        // More stress due to deadline
-        stressChange += 5;
-        joyChange -= 5;
+        gameState.deadlineProgress += progressGain * 0.8;
+        stressChange += 4;
+        joyChange -= 3;
     }
     
-    // Apply changes to game state
     gameState.workProgress += progressGain;
     updateStat('stress', stressChange);
     updateStat('joy', joyChange);
-    updateStat('fullness', -12); // Working makes you hungry
+    updateStat('fullness', -10);
     
-    domElements.narrativeText.innerHTML = `
-        <h2>Working</h2>
-        <p>${taskDesc}</p>
-    `;
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `<h2>Working</h2><p>${taskDesc}</p>`;
+    }
     
-    updateUI();
-    
-    // Use stored time advance instead of fixed value
     advanceTime(gameState.currentWorkTimeAdvance, 'work');
     
-    // Progress to next work stage
-    if (gameState.workdayStage === 1) {
-        gameState.workdayStage = 2;
+    if (gameState.workdayStage < 3) {
+        gameState.workdayStage++;
         showWorkStageOptions();
-    } else if (gameState.workdayStage === 2) {
-        gameState.workdayStage = 3;
-        showWorkStageOptions();
-    } else if (gameState.workdayStage >= 3) {
-        // End workday when we're at or past the final stage
-        endWorkDay();
     } else {
-        // Fallback in case workdayStage is undefined or invalid
-        gameState.workdayStage = 1;
-        showWorkStageOptions();
+        endWorkDay();
     }
 }
 
-// Take a break at work
 function takeBreak() {
-    if (!domElements.narrativeText) return;
+    if (domElements.narrativeText) {
+        const breakEvents = [
+            "You step away for a quick coffee break. Your mind clears a little.",
+            "You chat with a colleague about nothing important. It helps.",
+            "You take a walk around the office. Movement helps.",
+            "You scroll through your phone briefly. A guilty pleasure.",
+            "You step outside for fresh air. Well, Lagos air anyway.",
+            "You close your eyes for a moment. Brief respite."
+        ];
+        
+        const event = breakEvents[Math.floor(Math.random() * breakEvents.length)];
+        domElements.narrativeText.innerHTML = `<h2>Taking a Break</h2><p>${event}</p>`;
+    }
     
-    domElements.narrativeText.innerHTML = `
-        <h2>Taking a Break</h2>
-        <p>You step away from your work for a short break.</p>
-    `;
-    
-    updateStat('stress', -10);
+    updateStat('stress', -8);
     updateStat('joy', 4);
+    advanceTime(0.5, 'idle');
     
-    // Random break event
-    const breakEvents = [
-        "You chat with a friendly coworker about weekend plans.",
-        "You grab a cup of coffee from the break room.",
-        "You step outside for some fresh air.",
-        "You scroll through social media for a few minutes.",
-        "You do some quick stretches to relieve tension.",
-        "You make a quick personal call.",
-        "You browse news headlines on your phone.",
-        "You take a walk around the office building.",
-        "You have a small snack you brought from home."
-    ];
-    
-    const randomBreak = breakEvents[Math.floor(Math.random() * breakEvents.length)];
-    domElements.narrativeText.innerHTML += `<p>${randomBreak}</p>`;
-    
-    updateUI();
-    advanceTime(0.5, 'idle'); // Break takes half a time unit (1 hour)
-    
-    // Advance the work stage appropriately
-    if (gameState.workdayStage === 1) {
-        gameState.workdayStage = 2;
-    } else if (gameState.workdayStage === 2) {
-        gameState.workdayStage = 3;
-    } else if (gameState.workdayStage >= 3) {
+    if (gameState.workdayStage < 3) {
+        gameState.workdayStage++;
+    } else {
         endWorkDay();
         return;
     }
@@ -2838,365 +2250,200 @@ function takeBreak() {
     showWorkStageOptions();
 }
 
-// Go for lunch
 function eatLunch() {
     if (!domElements.narrativeText || !domElements.choicesContainer) return;
     
-    domElements.narrativeText.innerHTML = `
-        <h2>Lunch Time</h2>
-        <p>It's time for lunch. Where would you like to eat?</p>
-    `;
+    domElements.narrativeText.innerHTML = `<h2>Lunch Time</h2><p>Your stomach is demanding attention.</p>`;
     
-    const roadsideCost = modifyCost(6000);
-    const deliveryCost = modifyCost(10000);
-    const restaurantCost = modifyCost(15000);
+    const roadsideCost = modifyCost(4500);
+    const deliveryCost = modifyCost(8000);
+    const restaurantCost = modifyCost(12000);
     
     domElements.choicesContainer.innerHTML = `
-        <button class="choice-btn" onclick="buyLunch('roadside')">Buy from roadside vendor (₦${roadsideCost.toLocaleString()})</button>
-        <button class="choice-btn" onclick="buyLunch('delivery')">Order food delivery (₦${deliveryCost.toLocaleString()})</button>
-        <button class="choice-btn" onclick="buyLunch('restaurant')">Go to a restaurant (₦${restaurantCost.toLocaleString()})</button>
-        <button class="choice-btn" onclick="skipLunch()">Skip lunch to save money</button>
+        <button class="choice-btn" onclick="buyLunch('roadside')">Street food (₦${roadsideCost.toLocaleString()})</button>
+        <button class="choice-btn" onclick="buyLunch('delivery')">Food delivery (₦${deliveryCost.toLocaleString()})</button>
+        <button class="choice-btn" onclick="buyLunch('restaurant')">Restaurant (₦${restaurantCost.toLocaleString()})</button>
+        <button class="choice-btn" onclick="skipLunch()">Skip lunch</button>
     `;
 }
 
-// Buy lunch options
-function buyLunch(lunchType) {
-    if (!domElements.narrativeText || !domElements.choicesContainer) return;
+function buyLunch(type) {
+    let cost, fullness, joy, sickChance;
+    let foodName;
     
-    let cost = 0;
-    let fullnessGain = 0;
-    let joyGain = 0;
-    let description = "";
+    const foods = FOOD_OPTIONS.filter(f => {
+        if (type === 'roadside') return f.location === 'roadside' || (f.location === 'all' && f.cost < 5000);
+        if (type === 'delivery') return f.location === 'all';
+        return f.location === 'restaurant' || f.location === 'all';
+    });
     
-    switch(lunchType) {
-        case 'roadside':
-            // Check if roadside vendor is available
-            const vendorAvailable = Math.random() > 0.17; // 17% chance the vendor isn't there
-            
-            if (!vendorAvailable) {
-                domElements.narrativeText.innerHTML = `
-                    <p>The roadside food vendor isn't there today. You'll need to choose another option.</p>
-                `;
-                eatLunch();
-                return;
-            }
-            
-            // Select random roadside food
-            const roadsideFoods = FOOD_OPTIONS.filter(food => food.location === "roadside" || food.location === "all");
-            const selectedFood = roadsideFoods[Math.floor(Math.random() * roadsideFoods.length)];
-            
-            cost = modifyCost(selectedFood.cost);
-            fullnessGain = selectedFood.fullnessBoost;
-            joyGain = selectedFood.joyBoost;
-            
-            // Schedule possible sickness (60% chance)
-            if (Math.random() < 0.6) {
-                scheduleSickness();
-            }
-            
-            description = `You buy ${selectedFood.name} from a roadside vendor.`;
-            
-            // Extra food chance (good thing)
-            const extraFood = Math.random() < 0.5;
-            if (extraFood) {
-                description += " They give you an extra portion for being a regular customer!";
-                fullnessGain += 10;
-                joyGain += 5;
-            }
-            
-            break;
-            
-        case 'delivery':
-            // Select random delivery food
-            const deliveryFoods = FOOD_OPTIONS.filter(food => food.location === "all");
-            const selectedDeliveryFood = deliveryFoods[Math.floor(Math.random() * deliveryFoods.length)];
-            
-            cost = modifyCost(selectedDeliveryFood.cost + 4000); // Delivery fee
-            fullnessGain = selectedDeliveryFood.fullnessBoost;
-            joyGain = selectedDeliveryFood.joyBoost;
-            
-            description = `You order ${selectedDeliveryFood.name} for delivery.`;
-            
-            // 15% chance of getting sick
-            if (Math.random() < 0.15) {
-                scheduleSickness();
-            }
-            
-            // 35% chance of delivery person never showing up
-            const deliveryNoShow = Math.random() < 0.35;
-            if (deliveryNoShow) {
-                description += " Unfortunately, the delivery person never shows up with your food.";
-                cost = modifyCost(4000); // Only charged the delivery fee
-                fullnessGain = 0;
-                joyGain = -15;
-                updateStat('stress', 20);
-            } else {
-                // 40% chance of food being late
-                const foodLate = Math.random() < 0.4;
-                if (foodLate) {
-                    description += " The food arrives very late, when you're already extremely hungry.";
-                    joyGain = 0; // No joy from late food
-                    updateStat('stress', 10);
-                }
-            }
-            
-            break;
-            
-        case 'restaurant':
-            // Select random restaurant food
-            const restaurantFoods = FOOD_OPTIONS.filter(food => food.location === "restaurant" || food.location === "all");
-            const selectedRestaurantFood = restaurantFoods[Math.floor(Math.random() * restaurantFoods.length)];
-            
-            cost = modifyCost(selectedRestaurantFood.cost * 2); // Restaurant markup
-            fullnessGain = selectedRestaurantFood.fullnessBoost;
-            joyGain = selectedRestaurantFood.joyBoost + 10; // Extra joy from restaurant experience
-            
-            description = `You go to a restaurant and order ${selectedRestaurantFood.name}.`;
-            
-            // 20% chance of bad experience
-            const badExperience = Math.random() < 0.2;
-            if (badExperience) {
-                description += " Unfortunately, the service is poor and the food isn't great.";
-                joyGain = 0;
-                updateStat('stress', 15);
-            } else {
-                description += " The meal is delicious and the atmosphere is pleasant.";
-                updateStat('stress', -15);
-            }
-            
-            break;
-    }
+    const food = foods[Math.floor(Math.random() * foods.length)];
     
-    // Check if player can afford it
+    cost = modifyCost(type === 'roadside' ? food.cost : type === 'delivery' ? food.cost + 2500 : food.cost * 1.8);
+    fullness = food.fullnessBoost;
+    joy = food.joyBoost;
+    sickChance = food.sickChance || 0;
+    foodName = food.name;
+    
     if (gameState.money < cost) {
-        domElements.narrativeText.innerHTML = `
-            <p>You don't have enough money for this option (₦${cost.toLocaleString()}).</p>
-        `;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>You can't afford this option.</p>`;
+        }
         eatLunch();
         return;
     }
     
-    // Apply effects
     updateStat('money', -cost);
-    updateStat('fullness', fullnessGain);
-    updateStat('joy', joyGain);
+    updateStat('fullness', fullness);
+    updateStat('joy', joy);
+    gameState.mealsToday++;
     gameState.lastMealTime = gameState.time;
     
-    domElements.narrativeText.innerHTML = `
-        <h2>Lunch</h2>
-        <p>${description}</p>
-    `;
+    // Delivery issues
+    if (type === 'delivery' && Math.random() < 0.25) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `<p>The delivery takes forever. By the time your ${foodName} arrives, you're starving and annoyed.</p>`;
+        }
+        updateStat('joy', -joy / 2);
+        updateStat('stress', 8);
+    } else if (type === 'restaurant' && Math.random() < 0.15) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `<p>The restaurant is packed. Service is slow, but the ${foodName} is worth it.</p>`;
+        }
+        updateStat('stress', -10);
+    } else {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `<p>You enjoy your ${foodName}. Simple pleasures.</p>`;
+        }
+    }
     
-    updateUI();
-    advanceTime(1, 'idle'); // Lunch takes 1 time unit (2 hours)
+    // Food poisoning check
+    if (Math.random() < sickChance) {
+        gameState.isSick = true;
+        gameState.sicknessType = 'food';
+    }
     
-    // Advance to next work stage
+    advanceTime(1, 'idle');
+    
     if (gameState.workdayStage < 3) {
         gameState.workdayStage++;
     }
-    
     showWorkStageOptions();
 }
 
 function skipLunch() {
-    if (!domElements.narrativeText) return;
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `<p>You decide to power through without eating. Your stomach protests.</p>`;
+    }
     
-    domElements.narrativeText.innerHTML = `
-        <h2>Skipping Lunch</h2>
-        <p>You decide to skip lunch to save money. Your stomach growls in protest.</p>
-    `;
+    updateStat('fullness', -15);
+    updateStat('joy', -8);
+    updateStat('stress', 5);
     
-    // Skipping lunch is more punishing now
-    updateStat('fullness', -20);
-    updateStat('joy', -10);
-    updateStat('stress', 6);
+    advanceTime(0.5, 'idle');
     
-    updateUI();
-    advanceTime(0.5, 'idle'); // Skipping lunch still takes time (1 hour)
-    
-    // Advance to next work stage
     if (gameState.workdayStage < 3) {
         gameState.workdayStage++;
     }
-    
     showWorkStageOptions();
 }
 
-// End the work day
-function endWorkDay() {
-    if (!domElements.narrativeText) return;
+function checkStatus() {
+    if (!domElements.narrativeText || !domElements.choicesContainer) return;
     
-    gameState.isWorking = false;
+    let statusHTML = `<h2>Status Check</h2>`;
     
-    domElements.narrativeText.innerHTML = `
-        <h2>End of Work Day</h2>
-        <p>You've finished your work for the day. Evening has arrived.</p>
+    statusHTML += `
+        <div class="status-section">
+            <h3>Wellbeing</h3>
+            <p>Joy: ${Math.round(gameState.joy)}/100 - ${gameState.joy > 70 ? "Good" : gameState.joy > 40 ? "Managing" : "Struggling"}</p>
+            <p>Stress: ${Math.round(gameState.stress)}/100 - ${gameState.stress < 30 ? "Low" : gameState.stress < 60 ? "Moderate" : "High"}</p>
+            <p>Fullness: ${Math.round(gameState.fullness)}/100 - ${gameState.fullness > 70 ? "Satisfied" : gameState.fullness > 40 ? "Could eat" : "Hungry"}</p>
+            <p><em>${getAntThought()}</em></p>
+        </div>
+        
+        <div class="status-section">
+            <h3>Work</h3>
+            <p>Progress: ${Math.round(gameState.workProgress)}/100</p>
     `;
     
-    // Check if there's a power outage at home (bad thing)
-    const powerOutage = Math.random() < 0.25;
-    if (powerOutage) {
-        domElements.narrativeText.innerHTML += `<p>You receive a text from your neighbor that there's no electricity in your area.</p>`;
-        updateStat('stress', 10);
-        updateStat('joy', -6);
+    if (gameState.deadline > 0) {
+        const progress = Math.round((gameState.deadlineProgress / gameState.deadline) * 100);
+        const daysLeft = 5 - gameState.day;
+        statusHTML += `
+            <p>Deadline: ${progress}% complete</p>
+            <p>Time left: ${daysLeft} day${daysLeft !== 1 ? 's' : ''}</p>
+        `;
+    }
+    
+    statusHTML += `
+        </div>
+        
+        <div class="status-section">
+            <h3>Finances</h3>
+            <p>Balance: ₦${gameState.money.toLocaleString()}</p>
+            <p>Resilience: ${gameState.resiliencePoints} point${gameState.resiliencePoints !== 1 ? 's' : ''}</p>
+        </div>
+    `;
+    
+    domElements.narrativeText.innerHTML = statusHTML;
+    
+    domElements.choicesContainer.innerHTML = `
+        <button class="choice-btn" onclick="showWorkStageOptions()">Back to work</button>
+    `;
+}
+
+function endWorkDay() {
+    gameState.isWorking = false;
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <h2>End of Work Day</h2>
+            <p>The office empties. Another day survived.</p>
+        `;
+    }
+    
+    // Power outage check
+    if (Math.random() < 0.20) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>Your phone buzzes - NEPA has struck again. Your area has no power.</p>`;
+        }
+        updateStat('stress', 8);
+        updateStat('joy', -4);
     }
     
     eveningActivities();
 }
 
 // ========================================================================
-// FAMILY EMERGENCY FUNCTIONS
+// EVENING ACTIVITIES
 // ========================================================================
 
-function sendMoney(amount) {
-    if (!domElements.narrativeText) return;
-    
-    if (gameState.money < amount) {
-        domElements.narrativeText.innerHTML = `
-            <p>You don't have enough money to send. You'll need to explain the situation.</p>
-        `;
-        
-        explainNoMoney();
-        return;
-    }
-    
-    updateStat('money', -amount);
-    updateStat('joy', -8);
-    updateStat('stress', 10);
-    
-    domElements.narrativeText.innerHTML = `
-        <p>You send ₦${amount.toLocaleString()} to help with the medical expenses. It's a financial strain, but family comes first.</p>
-    `;
-    
-    updateUI();
-    showMorningOptions();
-}
-
-function explainNoMoney() {
-    if (!domElements.narrativeText) return;
-    
-    domElements.narrativeText.innerHTML = `
-        <p>You explain that you're struggling financially and can't send money right now. The conversation is difficult and weighs on your conscience.</p>
-    `;
-    
-    updateStat('joy', -18);
-    updateStat('stress', 25);
-    
-    updateUI();
-    showMorningOptions();
-}
-
-// ========================================================================
-// EVENING ACTIVITY FUNCTIONS
-// ========================================================================
-
-// Show evening activities
 function eveningActivities() {
     if (!domElements.narrativeText || !domElements.choicesContainer) return;
     
-    domElements.narrativeText.innerHTML += `<p>How would you like to spend your evening?</p>`;
+    domElements.narrativeText.innerHTML += `<p>The evening stretches ahead of you. What do you do?</p>`;
     
-    // Calculate costs for activities
-    const socialCost = modifyCost(9000);
-    const dinnerCost = modifyCost(18000);
-    const raveCost = modifyCost(18000);
-    const clubCost = modifyCost(25000);
+    const socialCost = modifyCost(7000);
+    const dinnerCost = modifyCost(15000);
     
     let options = `
-        <h3>Evening Activities:</h3>
+        <h3>Evening</h3>
         <button class="choice-btn" onclick="goHome()">Go home and rest</button>
-        <button class="choice-btn" onclick="socializeWithFriends(${socialCost})">Socialize with friends (₦${socialCost.toLocaleString()})</button>
-        <button class="choice-btn" onclick="continueworking()">Continue working on projects</button>
-        <button class="choice-btn" onclick="goOutForDinner(${dinnerCost})">Go out for dinner (₦${dinnerCost.toLocaleString()})</button>
-    `;
-    
-    // Add new options
-    options += `
+        <button class="choice-btn" onclick="socializeWithFriends(${socialCost})">Meet up with friends (₦${socialCost.toLocaleString()})</button>
+        <button class="choice-btn" onclick="continueWorking()">Keep working on projects</button>
+        <button class="choice-btn" onclick="goOutForDinner(${dinnerCost})">Treat yourself to dinner (₦${dinnerCost.toLocaleString()})</button>
         <button class="choice-btn" onclick="doExercise()">Exercise</button>
         <button class="choice-btn" onclick="creativeHobby()">Do something creative</button>
     `;
     
-    // Special Thursday/Friday options
+    // Weekend preview options on Thursday/Friday
     if (gameState.day >= 3) {
-        options += `
-            <button class="choice-btn" onclick="goToRave(${raveCost})">Go to a rave (₦${raveCost.toLocaleString()} for ticket)</button>
-            <button class="choice-btn" onclick="goToClub(${clubCost})">Go to a club (₦${clubCost.toLocaleString()}+ for bottles)</button>
-        `;
+        const raveCost = modifyCost(15000);
+        options += `<button class="choice-btn" onclick="goToRave(${raveCost})">Go out to party (₦${raveCost.toLocaleString()})</button>`;
     }
     
     domElements.choicesContainer.innerHTML = options;
-}
-
-// New evening activities
-function doExercise() {
-    if (!domElements.narrativeText || !domElements.choicesContainer) return;
-    
-    gameState.eveningActivities.exercise++;
-    
-    domElements.narrativeText.innerHTML = `<h2>Evening Exercise</h2>`;
-    
-    // Different effects based on how often you exercise
-    if (gameState.eveningActivities.exercise == 1) {
-        domElements.narrativeText.innerHTML += `<p>You decide to start exercising. It's tough getting started but feels good afterward.</p>`;
-        updateStat('joy', 4);
-        updateStat('stress', -8);
-        updateStat('fullness', -15);
-    } else if (gameState.eveningActivities.exercise < 4) {
-        domElements.narrativeText.innerHTML += `<p>You continue your exercise routine. Your body is getting used to it.</p>`;
-        updateStat('joy', 6);
-        updateStat('stress', -12);
-        updateStat('fullness', -15);
-    } else {
-        domElements.narrativeText.innerHTML += `<p>You've established a solid exercise routine. Your body feels stronger and your mind clearer.</p>`;
-        updateStat('joy', 9);
-        updateStat('stress', -18);
-        updateStat('fullness', -15);
-    }
-    
-    advanceTime(1.5, 'physical');
-    updateUI();
-    
-    domElements.narrativeText.innerHTML += `<p>You're hungry after your workout.</p>`;
-    
-    domElements.choicesContainer.innerHTML = `
-        <button class="choice-btn" onclick="cookDinner()">Cook a healthy dinner</button>
-        <button class="choice-btn" onclick="orderFoodDelivery()">Order food delivery</button>
-    `;
-}
-
-function creativeHobby() {
-    if (!domElements.narrativeText || !domElements.choicesContainer) return;
-    
-    gameState.eveningActivities.creative++;
-    
-    const hobbies = ["writing", "sketching", "playing music", "crafting"];
-    const hobby = hobbies[gameState.eveningActivities.creative % hobbies.length];
-    
-    domElements.narrativeText.innerHTML = `<h2>Creative Time</h2>`;
-    
-    // Different effects based on how often you engage in creative activities
-    if (gameState.eveningActivities.creative == 1) {
-        domElements.narrativeText.innerHTML += `<p>You spend some time ${hobby}. It's been a while since you've been creative.</p>`;
-        updateStat('joy', 10);
-        updateStat('stress', -8);
-    } else if (gameState.eveningActivities.creative < 4) {
-        domElements.narrativeText.innerHTML += `<p>You continue ${hobby}. You're starting to find your creative flow again.</p>`;
-        updateStat('joy', 12);
-        updateStat('stress', -10);
-    } else {
-        domElements.narrativeText.innerHTML += `<p>Your regular practice of ${hobby} has become a meaningful creative outlet. It's becoming a real source of joy.</p>`;
-        updateStat('joy', 15);
-        updateStat('stress', -12);
-    }
-    
-    advanceTime(2, 'idle');
-    updateUI();
-    
-    // After creative work
-    domElements.choicesContainer.innerHTML = `
-        <button class="choice-btn" onclick="goToSleep()">Go to sleep</button>
-        <button class="choice-btn" onclick="eatFood('delivery', true)">Get some food</button>
-    `;
 }
 
 function goHome() {
@@ -3204,572 +2451,667 @@ function goHome() {
     
     domElements.narrativeText.innerHTML = `
         <h2>Evening at Home</h2>
-        <p>You return to your apartment for a quiet evening.</p>
+        <p>You return to your place in ${gameState.location.name}. The familiar walls offer some comfort.</p>
     `;
     
-    updateStat('stress', -10);
+    updateStat('stress', -8);
     updateStat('joy', 3);
     
-    // Home activity options
     domElements.choicesContainer.innerHTML = `
-        <h3>What would you like to do at home?</h3>
-        <button class="choice-btn" onclick="cookDinner()">Cook dinner</button>
-        <button class="choice-btn" onclick="watchTV()">Watch TV or browse social media</button>
-        <button class="choice-btn" onclick="doHouseChores()">Do house chores</button>
-        <button class="choice-btn" onclick="goToSleep()">Go to sleep early</button>
+        <h3>Home Activities</h3>
+        <button class="choice-btn" onclick="cookDinner()">Cook something</button>
+        <button class="choice-btn" onclick="watchTV()">Relax with entertainment</button>
+        <button class="choice-btn" onclick="doHouseChores()">Do some chores</button>
+        <button class="choice-btn" onclick="goToSleep()">Go to bed early</button>
     `;
 }
 
 function cookDinner() {
-    if (!domElements.narrativeText || !domElements.choicesContainer) return;
+    const hasIngredients = Math.random() < 0.6;
     
-    // Only possible if you have groceries
-    const hasGroceries = Math.random() < 0.65;
-    
-    if (!hasGroceries) {
-        domElements.narrativeText.innerHTML = `
-            <p>You check your kitchen but realize you don't have enough ingredients to make a proper meal.</p>
-        `;
+    if (!hasIngredients) {
+        const groceryCost = modifyCost(6000);
         
-        const groceryCost = modifyCost(9000);
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>Your kitchen is nearly empty. You'll need to shop first.</p>`;
+        }
         
-        domElements.choicesContainer.innerHTML = `
-            <button class="choice-btn" onclick="goGroceryShopping(${groceryCost})">Go grocery shopping (₦${groceryCost.toLocaleString()})</button>
-            <button class="choice-btn" onclick="orderFoodDelivery()">Order food delivery instead</button>
-            <button class="choice-btn" onclick="skipDinner()">Skip dinner</button>
-        `;
+        if (domElements.choicesContainer) {
+            domElements.choicesContainer.innerHTML = `
+                <button class="choice-btn" onclick="goGroceryShopping(${groceryCost})">Buy groceries (₦${groceryCost.toLocaleString()})</button>
+                <button class="choice-btn" onclick="orderFoodDelivery()">Just order delivery</button>
+                <button class="choice-btn" onclick="skipDinner()">Skip dinner</button>
+            `;
+        }
         return;
     }
     
-    domElements.narrativeText.innerHTML = `
-        <p>You prepare a simple but satisfying meal at home.</p>
-    `;
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML += `<p>You cook a simple meal. The familiar routine is calming.</p>`;
+    }
     
-    updateStat('fullness', 40);
+    updateStat('fullness', 38);
     updateStat('joy', 6);
-    updateStat('stress', -3);
-    gameState.lastMealTime = gameState.time;
+    updateStat('stress', -4);
+    gameState.mealsToday++;
     
     advanceTime(1, 'idle');
-    updateUI();
     eveningLeisure();
 }
 
-function goGroceryShopping(groceryCost) {
-    if (!domElements.narrativeText) return;
-    
-    if (gameState.money < groceryCost) {
-        domElements.narrativeText.innerHTML += `<p>You don't have enough money for groceries.</p>`;
+function goGroceryShopping(cost) {
+    if (gameState.money < cost) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>You can't afford groceries right now.</p>`;
+        }
         goHome();
         return;
     }
     
-    domElements.narrativeText.innerHTML = `
-        <p>You make a quick trip to the local market to buy groceries.</p>
-    `;
+    updateStat('money', -cost);
+    updateStat('stress', 6);
+    updateStat('fullness', -5);
     
-    updateStat('money', -groceryCost);
-    updateStat('stress', 10);
-    updateStat('fullness', -8);
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `<p>You make a quick trip to the market. Then cook a proper meal.</p>`;
+    }
     
-    advanceTime(1, 'physical');
-    updateUI();
+    updateStat('fullness', 42);
+    updateStat('joy', 8);
+    gameState.mealsToday++;
     
-    domElements.narrativeText.innerHTML += `<p>Now you can cook a proper meal.</p>`;
-    
-    updateStat('fullness', 45);
-    updateStat('joy', 10);
-    gameState.lastMealTime = gameState.time;
-    
-    advanceTime(1, 'idle');
-    updateUI();
+    advanceTime(2, 'physical');
     eveningLeisure();
 }
 
 function orderFoodDelivery() {
-    eatFood('delivery', true); // Call the food function with delivery option for evening
-}
-
-function skipDinner() {
-    if (!domElements.narrativeText) return;
+    const deliveryCost = modifyCost(8000);
     
-    domElements.narrativeText.innerHTML += `<p>You decide to skip dinner tonight.</p>`;
+    if (gameState.money < deliveryCost) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML += `<p>You can't afford delivery right now.</p>`;
+        }
+        goHome();
+        return;
+    }
     
-    updateStat('fullness', -20);
-    updateStat('joy', -10);
+    updateStat('money', -deliveryCost);
     
-    updateUI();
+    // Delivery problems
+    if (Math.random() < 0.3) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `<p>The delivery takes forever. When it finally arrives, it's lukewarm.</p>`;
+        }
+        updateStat('fullness', 30);
+        updateStat('joy', 0);
+        updateStat('stress', 8);
+    } else {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `<p>Your food arrives hot and delicious. Small victories.</p>`;
+        }
+        updateStat('fullness', 35);
+        updateStat('joy', 8);
+    }
+    
+    gameState.mealsToday++;
+    advanceTime(1, 'idle');
     eveningLeisure();
 }
 
-function watchTV() {
-    if (!domElements.narrativeText) return;
+function skipDinner() {
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML += `<p>You go to bed hungry. It's not comfortable.</p>`;
+    }
     
+    updateStat('fullness', -18);
+    updateStat('joy', -10);
+    updateStat('stress', 5);
+    
+    goToSleep();
+}
+
+function watchTV() {
     gameState.eveningActivities.tv++;
     
-    // Add diminishing returns
-    let joyGain = 10;
+    // Diminishing returns
+    let joyGain = 10 - (gameState.eveningActivities.tv * 2);
+    joyGain = Math.max(3, joyGain);
+    
     if (gameState.eveningActivities.tv > 3) {
-        joyGain = 5;
-        domElements.narrativeText.innerHTML = `<p>You watch TV again. The shows are starting to seem repetitive.</p>`;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `<p>You scroll through channels, but nothing holds your attention. The familiar numbing effect.</p>`;
+        }
     } else {
-        domElements.narrativeText.innerHTML = `<p>You relax by watching TV or browsing social media.</p>`;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `<p>You unwind with some entertainment. Your mind gets a break.</p>`;
+        }
     }
     
     updateStat('joy', joyGain);
-    updateStat('stress', -12);
+    updateStat('stress', -10);
     
     advanceTime(2, 'idle');
-    updateUI();
     goToSleep();
 }
 
 function doHouseChores() {
-    if (!domElements.narrativeText) return;
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `<p>You clean up, do laundry, and generally get your life in order. It's satisfying work.</p>`;
+    }
     
-    domElements.narrativeText.innerHTML = `
-        <p>You spend some time cleaning your apartment and doing laundry.</p>
-    `;
-    
-    updateStat('stress', 5);
+    updateStat('stress', 3);
     updateStat('fullness', -5);
-    
-    // But having a clean space provides joy afterwards
-    updateStat('joy', 6);
+    updateStat('joy', 5); // Sense of accomplishment
     
     advanceTime(1, 'physical');
-    updateUI();
     eveningLeisure();
 }
 
 function eveningLeisure() {
     if (!domElements.narrativeText || !domElements.choicesContainer) return;
     
-    domElements.narrativeText.innerHTML += `<p>You have some free time before bed.</p>`;
+    domElements.narrativeText.innerHTML += `<p>You have some time before bed.</p>`;
     
     domElements.choicesContainer.innerHTML = `
-        <button class="choice-btn" onclick="watchTV()">Watch TV or browse social media</button>
+        <button class="choice-btn" onclick="watchTV()">Watch something</button>
         <button class="choice-btn" onclick="callFamily()">Call family or friends</button>
         <button class="choice-btn" onclick="goToSleep()">Go to sleep</button>
     `;
 }
 
 function callFamily() {
-    if (!domElements.narrativeText) return;
-    
-    domElements.narrativeText.innerHTML = `
-        <p>You spend some time on the phone with family or friends, catching up on life.</p>
-    `;
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `<p>You spend time on the phone with loved ones. The connection reminds you why you keep going.</p>`;
+    }
     
     updateStat('joy', 12);
-    updateStat('stress', -10);
+    updateStat('stress', -8);
     
     advanceTime(1, 'idle');
-    updateUI();
     goToSleep();
 }
 
-function socializeWithFriends(socialCost) {
-    if (!domElements.narrativeText) return;
-    
-    gameState.eveningActivities.social++;
-    
-    if (gameState.money < socialCost) {
-        domElements.narrativeText.innerHTML = `
-            <p>You don't have enough money to go out with friends right now.</p>
-        `;
+function socializeWithFriends(cost) {
+    if (gameState.money < cost) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `<p>You can't afford to go out right now.</p>`;
+        }
         eveningActivities();
         return;
     }
     
-    domElements.narrativeText.innerHTML = `
-        <h2>Out with Friends</h2>
-        <p>You meet up with some friends to unwind after work.</p>
-    `;
+    gameState.eveningActivities.social++;
     
-    // Apply class-based joy from leisure
-    let joyBoost = 18;
+    updateStat('money', -cost);
+    
+    // Class-modified joy
+    let joyBoost = 15;
     if (gameState.class) {
         joyBoost *= CLASS_MODIFIERS[gameState.class].joyFromLeisure;
     }
     
     updateStat('joy', joyBoost);
     updateStat('stress', -12);
-    updateStat('money', -socialCost);
     
-    // Random social event
     const socialEvents = [
-        "You have a great conversation about life and current events.",
-        "Your friend shares some hilarious stories about their workplace.",
-        "You run into an old acquaintance and catch up.",
-        "The group discusses plans for a future weekend trip.",
-        "You play some board games and have a competitive but fun time.",
-        "Someone shares their struggles at work, and you all commiserate.",
-        "You try a new drink that everyone's talking about.",
-        "A friend introduces you to someone interesting.",
-        "You share your own funny stories from the week."
+        "Great conversations about life, dreams, and surviving Lagos.",
+        "Your friend tells a story that has everyone in stitches.",
+        "You all commiserate about work. Shared misery is lighter.",
+        "Someone brought small chops. Perfect.",
+        "The group makes plans for when life is easier. Someday.",
+        "A friend shares good news. Their joy lifts everyone."
     ];
     
-    const randomEvent = socialEvents[Math.floor(Math.random() * socialEvents.length)];
-    domElements.narrativeText.innerHTML += `<p>${randomEvent}</p>`;
+    const event = socialEvents[Math.floor(Math.random() * socialEvents.length)];
     
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <h2>Time with Friends</h2>
+            <p>${event}</p>
+        `;
+    }
+    
+    updateStat('fullness', -10);
     advanceTime(3, 'idle');
-    updateUI();
-    
-    // Late night - go straight to sleep
     goToSleep();
 }
 
-function continueworking() {
-    if (!domElements.narrativeText || !domElements.choicesContainer) return;
-    
+function continueWorking() {
     gameState.eveningActivities.work++;
     
-    // Diminishing returns for overwork
-    let stressIncrease = 15;
-    let progressIncrease = 20;
-    let deadlineIncrease = 15;
+    // Diminishing returns and increasing stress
+    let progressGain = 18 - (gameState.eveningActivities.work * 3);
+    progressGain = Math.max(8, progressGain);
+    
+    let stressGain = 12 + (gameState.eveningActivities.work * 4);
     
     if (gameState.eveningActivities.work > 2) {
-        stressIncrease = 25;
-        progressIncrease = 15;
-        deadlineIncrease = 12;
-        
-        domElements.narrativeText.innerHTML = `
-            <h2>Working Overtime Again</h2>
-            <p>You force yourself to keep working, even though your mind is tired. It's increasingly difficult to focus.</p>
-        `;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>Burning the Midnight Oil</h2>
+                <p>You're exhausted, but you force yourself to keep working. Every keystroke is a battle.</p>
+                <p><em>${getAntThought()}</em></p>
+            `;
+        }
     } else {
-        domElements.narrativeText.innerHTML = `
-            <h2>Working Overtime</h2>
-            <p>You decide to put in some extra hours on your projects.</p>
-        `;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>Working Late</h2>
+                <p>You put in extra hours. The office is quiet - just you and the work.</p>
+            `;
+        }
     }
     
-    gameState.workProgress += progressIncrease;
+    gameState.workProgress += progressGain;
     
-    // If working on Tuesday's deadline
     if (gameState.deadline > 0) {
-        gameState.deadlineProgress += deadlineIncrease;
-        domElements.narrativeText.innerHTML += `<p>You make good progress on your deadline project.</p>`;
+        gameState.deadlineProgress += progressGain * 0.9;
     }
     
-    updateStat('stress', stressIncrease);
-    updateStat('fullness', -15);
-    updateStat('joy', -10);
+    updateStat('stress', stressGain);
+    updateStat('fullness', -12);
+    updateStat('joy', -8);
     
     advanceTime(2, 'work');
-    updateUI();
     
-    // Option to eat after working
-    domElements.narrativeText.innerHTML += `<p>You're hungry after all that extra work.</p>`;
+    // Prompt for food after working
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML += `<p>You're hungry after all that work.</p>`;
+    }
     
-    domElements.choicesContainer.innerHTML = `
-        <button class="choice-btn" onclick="eatFood('delivery', true)">Order food delivery</button>
-        <button class="choice-btn" onclick="goToSleep()">Skip dinner and go to sleep</button>
-    `;
+    if (domElements.choicesContainer) {
+        domElements.choicesContainer.innerHTML = `
+            <button class="choice-btn" onclick="orderFoodDelivery()">Order something</button>
+            <button class="choice-btn" onclick="goToSleep()">Just go to sleep</button>
+        `;
+    }
 }
 
-function goOutForDinner(dinnerCost) {
-    if (!domElements.narrativeText) return;
-    
-    if (gameState.money < dinnerCost) {
-        domElements.narrativeText.innerHTML = `
-            <p>You don't have enough money for a restaurant dinner right now.</p>
-        `;
+function goOutForDinner(cost) {
+    if (gameState.money < cost) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `<p>You can't afford a nice dinner right now.</p>`;
+        }
         eveningActivities();
         return;
     }
     
-    domElements.narrativeText.innerHTML = `
-        <h2>Dinner Out</h2>
-        <p>You decide to treat yourself to a nice dinner at a restaurant.</p>
-    `;
+    updateStat('money', -cost);
+    updateStat('fullness', 40);
+    updateStat('joy', 12);
+    updateStat('stress', -10);
+    gameState.mealsToday++;
     
-    // Select a restaurant food
-    const restaurantFoods = FOOD_OPTIONS.filter(food => food.location === "restaurant" || food.location === "all");
-    const selectedFood = restaurantFoods[Math.floor(Math.random() * restaurantFoods.length)];
-    
-    // Restaurant prices are higher
-    const cost = modifyCost(selectedFood.cost * 2);
-    
-    // Check for menu price increases for repeat visits
-    const repeatVisitPriceIncrease = Math.random() < 0.9;
-    const finalCost = repeatVisitPriceIncrease ? Math.round(cost * 1.4) : cost;
-    
-    updateStat('money', -finalCost);
-    updateStat('fullness', selectedFood.fullnessBoost * 1.2);
-    updateStat('joy', selectedFood.joyBoost + 10);
-    updateStat('stress', -12);
-    gameState.lastMealTime = gameState.time;
-    
-    if (repeatVisitPriceIncrease) {
-        domElements.narrativeText.innerHTML += `<p>You notice the prices have increased since your last visit. You pay ₦${finalCost.toLocaleString()} for your ${selectedFood.name}.</p>`;
-    } else {
-        domElements.narrativeText.innerHTML += `<p>You enjoy a delicious ${selectedFood.name} for ₦${finalCost.toLocaleString()}.</p>`;
-    }
-    
-    // 20% chance of bad experience
-    const badExperience = Math.random() < 0.2;
-    if (badExperience) {
-        domElements.narrativeText.innerHTML += `<p>Unfortunately, the service is slow and the food isn't as good as expected.</p>`;
-        updateStat('joy', -10);
-        updateStat('stress', 15);
-    } else {
-        domElements.narrativeText.innerHTML += `<p>The meal is excellent and the atmosphere helps you relax.</p>`;
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <h2>Dinner Out</h2>
+            <p>You treat yourself to a proper meal. The atmosphere, the food, the brief escape from routine - it's worth it.</p>
+        `;
     }
     
     advanceTime(2, 'idle');
-    updateUI();
-    
-    // Eating out takes time, so go straight to sleep after
     goToSleep();
 }
 
-function goToRave(raveCost) {
-    if (!domElements.narrativeText || !domElements.choicesContainer) return;
+function doExercise() {
+    gameState.eveningActivities.exercise++;
     
-    if (gameState.money < raveCost) {
-        domElements.narrativeText.innerHTML = `
-            <p>You don't have enough money for a rave ticket right now.</p>
+    // Exercise gets easier and more beneficial over time
+    let stressReduction = -8 - (gameState.eveningActivities.exercise * 2);
+    let joyGain = 5 + (gameState.eveningActivities.exercise * 1.5);
+    
+    if (gameState.eveningActivities.exercise === 1) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>Exercise</h2>
+                <p>You force yourself to work out. It's hard, but you feel better afterwards.</p>
+            `;
+        }
+    } else if (gameState.eveningActivities.exercise < 4) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>Exercise</h2>
+                <p>Another workout. Your body is getting used to this. It's becoming a habit.</p>
+            `;
+        }
+    } else {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>Exercise</h2>
+                <p>Your exercise routine is paying off. You feel stronger, clearer, more capable.</p>
+            `;
+        }
+        joyGain += 5;
+    }
+    
+    updateStat('joy', joyGain);
+    updateStat('stress', stressReduction);
+    updateStat('fullness', -15);
+    
+    advanceTime(1.5, 'physical');
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML += `<p>You worked up an appetite.</p>`;
+    }
+    
+    if (domElements.choicesContainer) {
+        domElements.choicesContainer.innerHTML = `
+            <button class="choice-btn" onclick="cookDinner()">Cook something healthy</button>
+            <button class="choice-btn" onclick="orderFoodDelivery()">Order food</button>
+            <button class="choice-btn" onclick="goToSleep()">Skip dinner and sleep</button>
         `;
+    }
+}
+
+function creativeHobby() {
+    gameState.eveningActivities.creative++;
+    
+    const hobbies = ["writing", "sketching", "making music", "crafting"];
+    const hobby = hobbies[(gameState.eveningActivities.creative - 1) % hobbies.length];
+    
+    let joyGain = 10 + (gameState.eveningActivities.creative * 2);
+    let stressReduction = -8 - (gameState.eveningActivities.creative);
+    
+    if (gameState.eveningActivities.creative === 1) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>Creative Time</h2>
+                <p>You spend time ${hobby}. It's been a while since you've done something purely for yourself.</p>
+            `;
+        }
+    } else if (gameState.eveningActivities.creative < 4) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>Creative Time</h2>
+                <p>More ${hobby}. You're finding your flow again. The stress of Lagos fades a little.</p>
+            `;
+        }
+    } else {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>Creative Time</h2>
+                <p>Your ${hobby} practice is becoming meaningful. This is who you are beyond the daily grind.</p>
+            `;
+        }
+        joyGain += 8;
+    }
+    
+    updateStat('joy', joyGain);
+    updateStat('stress', stressReduction);
+    
+    advanceTime(2, 'idle');
+    goToSleep();
+}
+
+function goToRave(cost) {
+    if (gameState.money < cost) {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `<p>You can't afford to party right now.</p>`;
+        }
         eveningActivities();
         return;
     }
     
-    domElements.narrativeText.innerHTML = `
-        <h2>Night Out at a Rave</h2>
-        <p>You decide to let loose at a high-energy rave party.</p>
-    `;
+    updateStat('money', -cost);
+    updateStat('joy', 22);
+    updateStat('stress', -20);
+    updateStat('fullness', -18);
     
-    updateStat('money', -raveCost);
-    updateStat('joy', 25);
-    updateStat('stress', -25);
-    updateStat('fullness', -20);
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <h2>Night Out</h2>
+            <p>The music, the lights, the energy. For a few hours, you forget about everything else.</p>
+        `;
+    }
     
-    // Offers of drugs/alcohol
-    domElements.narrativeText.innerHTML += `<p>Someone offers you substances to enhance your experience. Do you accept?</p>`;
-    
-    domElements.choicesContainer.innerHTML = `
-        <button class="choice-btn" onclick="takeDrugs()">Accept the offer</button>
-        <button class="choice-btn" onclick="refuseDrugs()">Politely decline</button>
-    `;
+    // Offer of substances
+    if (domElements.choicesContainer) {
+        domElements.choicesContainer.innerHTML = `
+            <p>Someone offers you something to "enhance the experience."</p>
+            <button class="choice-btn" onclick="acceptSubstances()">Why not</button>
+            <button class="choice-btn" onclick="declineSubstances()">No thanks</button>
+        `;
+    }
 }
 
-function takeDrugs() {
-    if (!domElements.narrativeText) return;
+function acceptSubstances() {
+    updateStat('joy', 30);
+    updateStat('stress', -30);
     
-    domElements.narrativeText.innerHTML = `
-        <p>You decide to indulge. The night becomes a blur of music, lights, and euphoria.</p>
-    `;
+    // Tomorrow will hurt
+    gameState.isSick = true;
+    gameState.sicknessType = 'hangover';
     
-    updateStat('joy', 35);
-    updateStat('stress', -35);
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `<p>The night becomes a blur of euphoria. You'll pay for this tomorrow, but right now, you don't care.</p>`;
+    }
     
-    // Schedule comedown for next day
-    gameState.drugComedownDay = gameState.day + 1;
-    
-    advanceTime(4, 'physical'); // Takes all night
-    updateUI();
+    advanceTime(4, 'physical');
     goToSleep();
 }
 
-function refuseDrugs() {
-    if (!domElements.narrativeText) return;
-    
-    domElements.narrativeText.innerHTML += `
-        <p>You decline the offer but still have a great time dancing and enjoying the music.</p>
-    `;
+function declineSubstances() {
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML += `<p>You decline politely and enjoy the night naturally. Still fun, still an escape.</p>`;
+    }
     
     advanceTime(3, 'physical');
-    updateUI();
     goToSleep();
-}
-
-function goToClub(clubCost) {
-    if (!domElements.narrativeText || !domElements.choicesContainer) return;
-    
-    if (gameState.money < clubCost) {
-        domElements.narrativeText.innerHTML = `
-            <p>You don't have enough money for the club right now.</p>
-        `;
-        eveningActivities();
-        return;
-    }
-    
-    domElements.narrativeText.innerHTML = `
-        <h2>Night at the Club</h2>
-        <p>You head to an upscale club for a night of luxury and excitement.</p>
-    `;
-    
-    updateStat('money', -clubCost);
-    updateStat('joy', 18);
-    updateStat('stress', -12);
-    
-    // Option to buy bottles
-    const bottleCost = modifyCost(90000);
-    domElements.narrativeText.innerHTML += `<p>The server suggests buying a bottle for your table (₦${bottleCost.toLocaleString()}). This would impress everyone around.</p>`;
-    
-    domElements.choicesContainer.innerHTML = `
-        <button class="choice-btn" onclick="buyBottles(${bottleCost})">Buy bottles (₦${bottleCost.toLocaleString()})</button>
-        <button class="choice-btn" onclick="declineBottles()">Stick to regular drinks</button>
-    `;
-}
-
-function buyBottles(bottleCost) {
-    if (!domElements.narrativeText) return;
-    
-    if (gameState.money < bottleCost) {
-        domElements.narrativeText.innerHTML += `<p>You don't have enough money for bottles.</p>`;
-        declineBottles();
-        return;
-    }
-    
-    updateStat('money', -bottleCost);
-    updateStat('joy', 12);
-    
-    domElements.narrativeText.innerHTML += `
-        <p>You splurge on bottles. The server brings them with sparklers, and for a moment, you're the center of attention.</p>
-    `;
-    
-    advanceTime(3, 'idle');
-    updateUI();
-    goToSleep();
-}
-
-function declineBottles() {
-    if (!domElements.narrativeText) return;
-    
-    domElements.narrativeText.innerHTML += `
-        <p>You decline the expensive bottles and enjoy your night with regular drinks.</p>
-    `;
-    
-    advanceTime(3, 'idle');
-    updateUI();
-    goToSleep();
-}
-
-function eatFood(foodType, isEvening) {
-    buyLunch(foodType); // Reuse the lunch functionality
-    
-    if (isEvening) {
-        advanceTime(1, 'idle');
-        goToSleep();
-    }
 }
 
 function goToSleep() {
-    if (!domElements.narrativeText) return;
-    
-    domElements.narrativeText.innerHTML = `
-        <h2>End of Day</h2>
-        <p>You get ready for bed and turn in for the night.</p>
-    `;
-    
-    // Sleep quality varies based on stress and hunger
     let sleepQuality = "good";
-    let joyBoost = 6;
-    let stressReduction = 12;
+    let joyBoost = 5;
+    let stressReduction = 10;
     
-    // Poor sleep if stressed
-    if (gameState.stress > 70) {
+    if (gameState.stress > 65) {
         sleepQuality = "poor";
-        joyBoost = 3;
-        stressReduction = 6;
-        domElements.narrativeText.innerHTML += `<p>Your sleep is restless due to stress.</p>`;
-    } 
-    // Poor sleep if hungry
-    else if (gameState.fullness < 30) {
+        joyBoost = 2;
+        stressReduction = 5;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>Night</h2>
+                <p>Sleep comes hard. Your mind races with worries. The ants are loud tonight.</p>
+                <p><em>${getAntThought()}</em></p>
+            `;
+        }
+    } else if (gameState.fullness < 30) {
         sleepQuality = "poor";
-        joyBoost = 3;
-        stressReduction = 6;
-        domElements.narrativeText.innerHTML += `<p>Your sleep is restless due to hunger.</p>`;
-    }
-    // Average sleep
-    else if (gameState.stress > 40) {
+        joyBoost = 2;
+        stressReduction = 5;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>Night</h2>
+                <p>Your stomach keeps you awake. Hunger is a persistent companion.</p>
+            `;
+        }
+    } else if (gameState.stress > 40) {
         sleepQuality = "average";
         joyBoost = 4;
-        stressReduction = 8;
-        domElements.narrativeText.innerHTML += `<p>You sleep adequately, though not perfectly.</p>`;
-    } 
-    // Good sleep
-    else {
-        domElements.narrativeText.innerHTML += `<p>You enjoy a deep, refreshing sleep.</p>`;
+        stressReduction = 7;
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>Night</h2>
+                <p>Sleep is fitful but you get some rest.</p>
+            `;
+        }
+    } else {
+        if (domElements.narrativeText) {
+            domElements.narrativeText.innerHTML = `
+                <h2>Night</h2>
+                <p>You sleep deeply. Tomorrow is another day.</p>
+            `;
+        }
     }
     
     updateStat('joy', joyBoost);
     updateStat('stress', -stressReduction);
     
-    // Advance to next day morning
-    advanceToNextDay();
-}
-
-function advanceToNextDay() {
-    // Advance time to next morning
-    gameState.time = 0; // 6AM
+    // Advance to next day
+    gameState.time = 0;
     gameState.day += 1;
-    
-    // Reset some daily flags
-    gameState.isWorking = false;
     gameState.workdayStage = 0;
     
-    // Check if week is over
     if (gameState.day > 4) {
         finishGame();
         return;
     }
     
-    // Natural resource recovery from sleep
-    updateStat('fullness', -25);
+    // Natural overnight decay
+    updateStat('fullness', -20);
     
-    // Check for drug comedown
-    if (gameState.drugComedownDay === gameState.day) {
+    // Check for hangover
+    if (gameState.isSick && gameState.sicknessType === 'hangover') {
         if (domElements.narrativeText) {
             domElements.narrativeText.innerHTML = `
                 <h2>The Morning After</h2>
-                <p>You wake up feeling terrible from last night's indulgence. The comedown is rough.</p>
+                <p>You wake up feeling terrible. Head pounding, stomach churning. Worth it? You're not sure.</p>
             `;
         }
         
-        updateStat('joy', -30);
-        updateStat('stress', 35);
-        updateStat('fullness', -15);
+        updateStat('joy', -20);
+        updateStat('stress', 25);
+        gameState.isSick = false;
+        gameState.sicknessType = null;
         
-        gameState.drugComedownDay = null;
+        showMorningOptions();
+    } else if (gameState.isSick && gameState.sicknessType === 'food') {
+        showSicknessEvent();
     } else {
-        // Day-specific events
-        if (gameState.day === 1) {
-            // Tuesday dawn
-            startTuesday();
-        } else if (gameState.day === 2) {
-            // Wednesday dawn
-            startWednesday();
-        } else if (gameState.day === 3) {
-            // Thursday dawn
-            startThursday();
-        } else if (gameState.day === 4) {
-            // Friday dawn
-            startFriday();
-        }
+        startNewDay();
     }
     
     updateUI();
 }
 
 // ========================================================================
-// START THE GAME
+// GAME ENDINGS
 // ========================================================================
 
-// Initialize the game once the page has loaded
+function gameOver(reason) {
+    gameState.isGameOver = true;
+    clearAntSystem();
+    
+    // Clear timers
+    const highestId = setTimeout(() => {}, 0);
+    for (let i = 0; i < highestId; i++) {
+        clearTimeout(i);
+    }
+    
+    document.body.classList.add('transition-pause');
+    
+    if (domElements.gameContent) {
+        domElements.gameContent.classList.add('game-over');
+        domElements.gameContent.classList.remove('text-distortion-light', 'text-distortion-medium', 'text-distortion-heavy');
+    }
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <h2>Game Over</h2>
+            <p>${reason}</p>
+            <p><em>${getAntThought()}</em></p>
+            
+            <div class="status-section">
+                <h3>Final Statistics</h3>
+                <p>Day Reached: ${DAYS[gameState.day]}</p>
+                <p>Joy: ${Math.round(gameState.joy)}/100</p>
+                <p>Fullness: ${Math.round(gameState.fullness)}/100</p>
+                <p>Stress: ${Math.round(gameState.stress)}/100</p>
+                <p>Money: ₦${gameState.money.toLocaleString()}</p>
+            </div>
+        `;
+    }
+    
+    if (domElements.choicesContainer) {
+        domElements.choicesContainer.innerHTML = `
+            <button class="choice-btn" onclick="location.reload()">Try Again</button>
+            <a href="https://pagebookstore.com/products/how-to-get-rid-of-ants" class="preorder-btn" target="_blank">Pre-order the Book</a>
+        `;
+    }
+}
+
+function finishGame() {
+    gameState.isGameOver = true;
+    clearAntSystem();
+    
+    document.body.classList.add('transition-pause');
+    
+    if (domElements.gameContent) {
+        domElements.gameContent.classList.remove('text-distortion-light', 'text-distortion-medium', 'text-distortion-heavy');
+    }
+    
+    // Determine ending
+    let endingType, endingDesc;
+    
+    if (gameState.joy <= 20) {
+        endingType = "Barely Surviving";
+        endingDesc = "You made it through the week, but at what cost? The ants are loud, your spirit is dim. But you're still here. That counts for something.";
+    } else if (gameState.stress >= 75) {
+        endingType = "On the Edge";
+        endingDesc = "The week nearly broke you. You're running on fumes and anxiety. But the weekend is here. Time to breathe.";
+    } else if (gameState.joy < 40 || gameState.fullness < 35 || gameState.stress > 60) {
+        endingType = "Survival";
+        endingDesc = "Another week survived. It wasn't pretty, but you made it. In Lagos, that's not nothing.";
+    } else if (gameState.joy >= 60 && gameState.stress <= 45) {
+        endingType = "Balance";
+        endingDesc = "Against the odds, you found balance. Work, life, sanity - you kept all the plates spinning. The ants are quiet.";
+    } else {
+        endingType = "Thriving";
+        endingDesc = "You didn't just survive - you lived. Lagos threw everything at you, and you met it with grace. The ants have nothing to feed on.";
+    }
+    
+    // Deadline result
+    let deadlineResult = "";
+    if (gameState.deadline > 0) {
+        const progress = Math.round((gameState.deadlineProgress / gameState.deadline) * 100);
+        
+        if (progress >= 100) {
+            deadlineResult = "You completed the impossible deadline. Your boss is impressed, even if they won't say it.";
+        } else if (progress >= 80) {
+            deadlineResult = "You made substantial progress on the deadline. Not perfect, but enough to avoid the worst consequences.";
+        } else {
+            deadlineResult = "The deadline wasn't met. There will be consequences next week. But that's a problem for future you.";
+        }
+    }
+    
+    if (domElements.narrativeText) {
+        domElements.narrativeText.innerHTML = `
+            <h2>Friday Night: ${endingType}</h2>
+            <p>${endingDesc}</p>
+            ${deadlineResult ? `<p>${deadlineResult}</p>` : ''}
+            
+            <div class="status-section">
+                <h3>Final Statistics</h3>
+                <p>Joy: ${Math.round(gameState.joy)}/100</p>
+                <p>Fullness: ${Math.round(gameState.fullness)}/100</p>
+                <p>Stress: ${Math.round(gameState.stress)}/100</p>
+                <p>Money Remaining: ₦${gameState.money.toLocaleString()}</p>
+                <p>Resilience Remaining: ${gameState.resiliencePoints}</p>
+            </div>
+            
+            <p><em>The weekend stretches ahead. A chance to recover, to prepare for next week. The cycle continues. But for now, you rest.</em></p>
+        `;
+    }
+    
+    if (domElements.choicesContainer) {
+        domElements.choicesContainer.innerHTML = `
+            <button class="choice-btn" onclick="location.reload()">Play Again</button>
+            <a href="https://pagebookstore.com/products/how-to-get-rid-of-ants" class="preorder-btn" target="_blank">Pre-order "How to Get Rid of Ants"</a>
+        `;
+    }
+}
+
+// ========================================================================
+// INITIALIZATION
+// ========================================================================
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Start initialization through the GameInitializer
     window.GameInitializer.init();
 });
 
-// If document is already loaded, initialize immediately
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     setTimeout(function() {
-        if (window.GameInitializer) {
+        if (window.GameInitializer && !window.GameInitializer.initialized) {
             window.GameInitializer.init();
         }
     }, 1);
